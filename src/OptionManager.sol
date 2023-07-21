@@ -31,7 +31,7 @@ contract OptionManager is LyraAdapter {
         return result.positionId;
     }
 
-    function modifyLyraPosition(uint256 positionId, uint256 amount, uint256 collateral) external {
+    function modifyLyraPosition(uint256 positionId, uint256 amount) external {
         Position position = _getPositions(_singletonArray(positionId)); // must first convert number into a static array
 
         TradeInputParameters tradeParams = TradeInputParameters({
@@ -39,8 +39,8 @@ contract OptionManager is LyraAdapter {
             positionId: position.positionId,
             iterations: 3,
             optionType: position.optionType,
-            amount: amount, // closing 100%
-            setCollateralTo: collateral, // increase collateral by addCollatAmount
+            amount: amount, // set the amount of options we need to buy
+            setCollateralTo: 0, // change collateral by addCollatAmount, 0 since we gigalong
             minTotalCost: 0,
             maxTotalCost: type(uint256).max // assume we are ok with any premium amount
         });

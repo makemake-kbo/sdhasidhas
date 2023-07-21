@@ -60,7 +60,7 @@ contract Justine is BaseHook {
         contractAmount = contractAmount / 1e18;
 
         if (hasActiveOption) {
-            modifyLyraPosition(uint256 positionId, uint256 amount, uint256 collateral);
+            modifyLyraPosition(uint256 positionId, uint256 amount);
         } else {
             currentPositionId = openNewLyraPosition(uint256 strikeId, uint256 amount);
             hasActiveOption = true;
