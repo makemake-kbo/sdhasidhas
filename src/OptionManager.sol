@@ -9,13 +9,12 @@ contract TraderExample is LyraAdapter {
 
     function initAdapter(address _lyraRegistry, address _optionMarket, address _curveSwap, address _feeCounter)
         external
-        onlyOwner
     {
         // set addresses for LyraAdapter
         setLyraAddresses(_lyraRegistry, _optionMarket, _curveSwap, _feeCounter);
     }
 
-    function openNewLyraPosition(uint256 strikeId, uint256 amount) external onlyOwner {
+    function openNewLyraPosition(uint256 strikeId, uint256 amount) external {
         TradeInputParameters tradeParams = TradeInputParameters({
             strikeId: strikeId,
             positionId: 0, // if 0, new position is created
@@ -30,7 +29,7 @@ contract TraderExample is LyraAdapter {
         activePositionIds.push(result.positionId);
     }
 
-    function modifyLyraPosition(uint256 positionId, uint256 amount, uint256 collateral) external onlyOwner {
+    function modifyLyraPosition(uint256 positionId, uint256 amount, uint256 collateral) external {
         Position position = _getPositions(_singletonArray(positionId)); // must first convert number into a static array
 
         TradeInputParameters tradeParams = TradeInputParameters({
