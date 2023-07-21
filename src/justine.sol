@@ -1,12 +1,15 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.15;
+pragma solidity ^0.8.0;
 
 import {Hooks} from "@uniswap/v4-core/contracts/libraries/Hooks.sol";
 import {BaseHook} from "v4-periphery/BaseHook.sol";
+
 import {IPoolManager} from "@uniswap/v4-core/contracts/interfaces/IPoolManager.sol";
 import {PoolId} from "@uniswap/v4-core/contracts/libraries/PoolId.sol";
 import {BalanceDelta} from "@uniswap/v4-core/contracts/types/BalanceDelta.sol";
-import {Currency} from "@uniswap/v4-core/contracts/libraries/CurrencyLibrary.sol";
+import {OptionManager} from "./OptionManager.sol";
+
+import "@chainlink/interfaces/AggregatorV3Interface.sol";
 
 contract Justine is BaseHook {
     using PoolId for IPoolManager.PoolKey;
@@ -15,8 +18,15 @@ contract Justine is BaseHook {
     bool private hasActiveOption = false;
     uint256 private currentPositionId = 0;
     uint256 private currentActiveContracts = 0;
+    AggregatorV3Interface internal dataFeed;
 
-    constructor(IPoolManager _poolManager) BaseHook(_poolManager) {}
+    constructor(IPoolManager _poolManager, address _feed) BaseHook(_poolManager) {
+        dataFeed = AggregatorV3Interface(
+            _feed
+        );
+    }
+
+    constructor(address _feed) 
 
     function getHooksCalls() public pure override returns (Hooks.Calls memory) {
         return Hooks.Calls({
@@ -36,9 +46,9 @@ contract Justine is BaseHook {
         override
         returns (bytes4)
     {
-        // if (key.currency0 == address(0)) {
-        //     isAmount0Eth = true;
-        // }
+        if (key.currency0 == address(0)) {
+            isAmount0Eth = true;
+        }
 
         return BaseHook.beforeSwap.selector;
     }
@@ -61,12 +71,16 @@ contract Justine is BaseHook {
         // get how much eth we're depositing, since its going to be whole we need to truncate the decimals
         contractAmount = contractAmount / 1e18;
 
-        // if (hasActiveOption) {
-        //     modifyLyraPosition(positionId, amount);
-        // } else {
-        //     currentPositionId = openNewLyraPosition(strikeId, amount);
-        //     hasActiveOption = true;
-        // }
+        if (hasActiveOption) {
+            modifyLyraPosition(currentPositionId, contractAmount);
+        } else {
+            uint256 _boardId = getBoardId(block.timestamp + 7 days);
+            (,uint256 answer,,,) = dataFeed.latestRoundData();
+            uint256 _strike = whichStrike(answer, _boardId);
+
+            currentPositionId = openNewLyraPosition(_strike, contractAmount);
+            hasActiveOption = true;
+        }
 
         return BaseHook.beforeSwap.selector;
     }
