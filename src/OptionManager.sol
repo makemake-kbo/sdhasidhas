@@ -2,7 +2,7 @@ pragma solidity 0.8.16;
 
 import {LyraAdapter} from "@lyra-protocol/contracts/periphery/LyraAdapter.sol";
 
-contract TraderExample is LyraAdapter {
+contract OptionManager is LyraAdapter {
     constructor() LyraAdapter();
 
     uint256[] public activePositionIds;
@@ -14,7 +14,7 @@ contract TraderExample is LyraAdapter {
         setLyraAddresses(_lyraRegistry, _optionMarket, _curveSwap, _feeCounter);
     }
 
-    function openNewLyraPosition(uint256 strikeId, uint256 amount) external {
+    function openNewLyraPosition(uint256 strikeId, uint256 amount) external returns(uint256){
         TradeInputParameters tradeParams = TradeInputParameters({
             strikeId: strikeId,
             positionId: 0, // if 0, new position is created
@@ -27,6 +27,8 @@ contract TraderExample is LyraAdapter {
         });
         TradeResult result = _openPosition(tradeParams); // built-in LyraAdapter.sol function
         activePositionIds.push(result.positionId);
+
+        return result.positionId;
     }
 
     function modifyLyraPosition(uint256 positionId, uint256 amount, uint256 collateral) external {
