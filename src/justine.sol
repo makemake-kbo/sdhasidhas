@@ -52,7 +52,8 @@ contract Justine is BaseHook {
             ethAmount = amount1;
         }
 
-        
+        // get how much eth we're depositing, since its going to be whole we need to truncate the decimals
+        ethAmount = ethAmount / 1e18;
 
         return BaseHook.beforeSwap.selector;
     }
