@@ -1,11 +1,24 @@
 pragma solidity 0.8.16;
 
 import {LyraAdapter} from "@lyra-protocol/contracts/periphery/LyraAdapter.sol";
+import {OptionMarket} from "@lyra-protocol/contracts/OptionMarket.sol";
+import {IOptionMarket} from "@lyra-protocol/contracts/interfaces/IOptionMarket.sol";
+import {IOptionToken} from "@lyra-protocol/contracts/interfaces/IOptionToken.sol";
 
 contract TraderExample is LyraAdapter {
-    constructor() LyraAdapter();
+    constructor() LyraAdapter() {}
 
-    uint256[] public activePositionIds;
+    uint[] public activePositionIds;
+
+    function initAdapter(
+    address _lyraRegistry,
+    address _optionMarket,
+    address _curveSwap,
+    address _feeCounter
+    ) external onlyOwner {
+    // set addresses for LyraAdapter
+    setLyraAddresses(_lyraRegistry, _optionMarket, _curveSwap, _feeCounter);
+    }
 
     function initAdapter(address _lyraRegistry, address _optionMarket, address _curveSwap, address _feeCounter)
         external
@@ -14,19 +27,23 @@ contract TraderExample is LyraAdapter {
         setLyraAddresses(_lyraRegistry, _optionMarket, _curveSwap, _feeCounter);
     }
 
-    function openNewLyraPosition(uint256 strikeId, uint256 amount) external {
-        TradeInputParameters tradeParams = TradeInputParameters({
-            strikeId: strikeId,
-            positionId: 0, // if 0, new position is created
-            iterations: 3, // more iterations use more gas but incur less slippage
-            optionType: LONG_CALL,
-            amount: amount,
-            setCollateralTo: 0, // 0 if longing
-            minTotalCost: 0,
-            maxTotalCost: type(uint256).max
-        });
-        TradeResult result = _openPosition(tradeParams); // built-in LyraAdapter.sol function
-        activePositionIds.push(result.positionId);
+    function modifyLyraPosition(uint positionId, uint amount, uint collateral) external onlyOwner{
+      IOptionToken.OptionPosition[] memory position = _getPositions(_singletonArray(positionId)); // must first convert number into a static array
+      // Position position = _getPositions(_singletonArray(positionId)); // must first convert number into a static array
+
+      TradeInputParameters memory tradeParams = TradeInputParameters({
+        strikeId: position.strikeId,
+        positionId: position.positionId,
+        iterations: 3,
+        optionType: position.optionType,
+        amount: amount, // closing 100%
+        setCollateralTo: collateral, // increase collateral by addCollatAmount
+        minTotalCost: 0,
+        maxTotalCost: type(uint).max // assume we are ok with any premium amount
+      });
+
+      // built-in LyraAdapter.sol functions
+      _closeOrForceClosePosition(tradeParams);
     }
 
     function modifyLyraPosition(uint256 positionId, uint256 amount, uint256 collateral) external {
@@ -46,4 +63,5 @@ contract TraderExample is LyraAdapter {
         // built-in LyraAdapter.sol functions
         _closeOrForceClosePosition(tradeParams);
     }
+
 }

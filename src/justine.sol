@@ -7,12 +7,16 @@ import {BaseHook} from "v4-periphery/BaseHook.sol";
 import {IPoolManager} from "@uniswap/v4-core/contracts/interfaces/IPoolManager.sol";
 import {PoolId} from "@uniswap/v4-core/contracts/libraries/PoolId.sol";
 import {BalanceDelta} from "@uniswap/v4-core/contracts/types/BalanceDelta.sol";
+// import {Currency} from "@uniswap/v4-core/contracts/libraries/CurrencyLibrary.sol";
+import "@uniswap/v4-core/contracts/libraries/CurrencyLibrary.sol";
 
 contract Justine is BaseHook {
     using PoolId for IPoolManager.PoolKey;
 
     bool private isAmount0Eth = false;
     bool private hasActiveOption = false;
+
+    constructor(IPoolManager _poolManager) BaseHook(_poolManager) {}
 
     function getHooksCalls() public pure override returns (Hooks.Calls memory) {
         return Hooks.Calls({
@@ -32,9 +36,10 @@ contract Justine is BaseHook {
         override
         returns (bytes4)
     {
-        if (key.currency0 == address(0)) {
-            isAmount0Eth = true;
-        }
+        // TODO: fuck it
+        // if (key.currency0 == address(0)) {
+        //     isAmount0Eth = true;
+        // }
 
         return BaseHook.beforeSwap.selector;
     }
@@ -60,9 +65,9 @@ contract Justine is BaseHook {
     function afterModifyPosition(
         address sender,
         IPoolManager.PoolKey calldata key,
-        ModifyPositionParams.ModifyParams calldata params
+        IPoolManager.ModifyPositionParams calldata params,
+        BalanceDelta balanceDelta
     ) external override returns (bytes4) {
-
         return BaseHook.beforeSwap.selector;
     }
 }
