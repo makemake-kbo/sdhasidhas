@@ -1,13 +1,6 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.15;
 
-import {Hooks} from "@uniswap/v4-core/contracts/libraries/Hooks.sol";
-import {BaseHook} from "v4-periphery/BaseHook.sol";
-
-import {IPoolManager} from "@uniswap/v4-core/contracts/interfaces/IPoolManager.sol";
-import {PoolId} from "@uniswap/v4-core/contracts/libraries/PoolId.sol";
-import {BalanceDelta} from "@uniswap/v4-core/contracts/types/BalanceDelta.sol";
-
 // Import Lyra contracts
 import {IOptionMarket} from "@lyra/contracts/IOptionMarket.sol";
 
