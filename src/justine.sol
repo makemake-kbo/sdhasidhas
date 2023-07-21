@@ -47,12 +47,11 @@ contract Justine is BaseHook {
         return BaseHook.beforeSwap.selector;
     }
 
-    function afterModifyPosition(address sender, IPoolManager.PoolKey calldata key, ModifyPositionParams.ModifyParams calldata params)
-        external
-        override
-        returns (bytes4)
-    {
+    function afterModifyPosition(
+        address sender,
+        IPoolManager.PoolKey calldata key,
+        ModifyPositionParams.ModifyParams calldata params
+    ) external override returns (bytes4) {
         return BaseHook.beforeSwap.selector;
     }
-
 }
