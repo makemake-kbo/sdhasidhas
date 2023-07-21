@@ -109,7 +109,7 @@ contract Justine is BaseHook, OptionManager {
         // TODO: Add a check if our option expired
 
         // Get how much eth we're depositing so we can get how much contracts we need to buy
-        uint contractAmount;   
+        uint256 contractAmount;
         if (isAmount0Eth) {
             contractAmount = amount0;
         } else {
