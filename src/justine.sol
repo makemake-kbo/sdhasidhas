@@ -9,6 +9,7 @@ import {PoolId} from "@uniswap/v4-core/contracts/libraries/PoolId.sol";
 import {BalanceDelta} from "@uniswap/v4-core/contracts/types/BalanceDelta.sol";
 import {OptionManager} from "./OptionManager.sol";
 
+import "@chainlink/interfaces/AggregatorV3Interface.sol";
 
 contract Justine is BaseHook {
     using PoolId for IPoolManager.PoolKey;
@@ -17,8 +18,15 @@ contract Justine is BaseHook {
     bool private hasActiveOption = false;
     uint256 private currentPositionId = 0;
     uint256 private currentActiveContracts = 0;
+    AggregatorV3Interface internal dataFeed;
 
+    constructor(IPoolManager _poolManager, address _feed) BaseHook(_poolManager) {
+        dataFeed = AggregatorV3Interface(
+            _feed
+        );
+    }
 
+    constructor(address _feed) 
 
     function getHooksCalls() public pure override returns (Hooks.Calls memory) {
         return Hooks.Calls({
@@ -67,7 +75,9 @@ contract Justine is BaseHook {
             modifyLyraPosition(currentPositionId, contractAmount);
         } else {
             uint256 _boardId = getBoardId(block.timestamp + 7 days);
-            uint256 _strike = whichStrike(/**/, _boardId);
+            uint256 _price = 
+            (,uint256 answer,,,) = dataFeed.latestRoundData();
+            uint256 _strike = whichStrike(answer, _boardId);
 
             currentPositionId = openNewLyraPosition(_strike, contractAmount);
             hasActiveOption = true;
@@ -79,7 +89,8 @@ contract Justine is BaseHook {
     function afterModifyPosition(
         address sender,
         IPoolManager.PoolKey calldata key,
-        ModifyPositionParams.ModifyParams calldata params
+        IPoolManager.ModifyPositionParams calldata params,
+        BalanceDelta delta
     ) external override returns (bytes4) {
         // TODO: Add a check if our option expired
 
