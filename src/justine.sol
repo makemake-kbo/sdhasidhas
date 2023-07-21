@@ -14,6 +14,7 @@ contract Justine is BaseHook {
     using PoolId for IPoolManager.PoolKey;
 
     bool private isAmount0Eth = false;
+    bool private hasActiveOption = false;
     uint256 private currentPositionId = 0;
     uint256 private currentActiveContracts = 0;
 
@@ -47,21 +48,22 @@ contract Justine is BaseHook {
         override
         returns (bytes4)
     {
-        // Get how much eth we're depositing
-        uint ethAmount;   
+        // Get how much eth we're depositing so we can get how much contracts we need to buy
+        uint contractAmount;   
         if (isAmount0Eth) {
-            ethAmount = amount0;
+            contractAmount = amount0;
         } else {
-            ethAmount = amount1;
+            contractAmount = amount1;
         }
 
         // get how much eth we're depositing, since its going to be whole we need to truncate the decimals
-        ethAmount = ethAmount / 1e18;
+        contractAmount = contractAmount / 1e18;
 
         if (hasActiveOption) {
             modifyLyraPosition(uint256 positionId, uint256 amount, uint256 collateral);
         } else {
-            openNewLyraPosition(uint256 strikeId, uint256 amount)
+            currentPositionId = openNewLyraPosition(uint256 strikeId, uint256 amount);
+            hasActiveOption = true;
         }
 
         return BaseHook.beforeSwap.selector;
