@@ -2,7 +2,7 @@
 pragma solidity ^0.8.15;
 
 // Import Lyra contracts
-import {IOptionMarket} from "@lyra/contracts/IOptionMarket.sol";
+import {IOptionMarket} from "@lyra-protocol/contracts/intefaces/IOptionMarket.sol;
 
 contract OptionChoice {
     IOptionMarket optionMarket;

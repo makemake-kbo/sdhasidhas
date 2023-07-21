@@ -3,7 +3,7 @@ pragma solidity 0.8.16;
 import {LyraAdapter} from "@lyra-protocol/contracts/periphery/LyraAdapter.sol";
 
 contract TraderExample is LyraAdapter {
-    constructor() LyraAdapter()
+    constructor() LyraAdapter();
     uint[] public activePositionIds;
 
     function initAdapter(
@@ -25,7 +25,7 @@ contract TraderExample is LyraAdapter {
         amount: amount,
         setCollateralTo: 0, // 0 if longing
         minTotalCost: 0,
-        maxTotalCost: type(uint).max,
+        maxTotalCost: type(uint).max
       });
       TradeResult result = _openPosition(tradeParams); // built-in LyraAdapter.sol function
       activePositionIds.push(result.positionId);
@@ -42,11 +42,11 @@ contract TraderExample is LyraAdapter {
         amount: amount, // closing 100%
         setCollateralTo: collateral, // increase collateral by addCollatAmount
         minTotalCost: 0,
-        maxTotalCost: type(uint).max, // assume we are ok with any premium amount
+        maxTotalCost: type(uint).max // assume we are ok with any premium amount
       });
 
       // built-in LyraAdapter.sol functions
-      _closeOrForceClosePosition(tradeParams)
+      _closeOrForceClosePosition(tradeParams);
     }
 
 }
