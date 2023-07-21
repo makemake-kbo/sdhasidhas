@@ -1,4 +1,4 @@
-pragma solidity 0.8.16;
+pragma solidity ^0.8.16;
 
 import {LyraAdapter} from "@lyra-protocol/contracts/periphery/LyraAdapter.sol";
 
@@ -14,7 +14,7 @@ contract OptionManager is LyraAdapter {
         setLyraAddresses(_lyraRegistry, _optionMarket, _curveSwap, _feeCounter);
     }
 
-    function openNewLyraPosition(uint256 strikeId, uint256 amount) external returns(uint256){
+    function openNewLyraPosition(uint256 strikeId, uint256 amount) external returns (uint256) {
         TradeInputParameters tradeParams = TradeInputParameters({
             strikeId: strikeId,
             positionId: 0, // if 0, new position is created
