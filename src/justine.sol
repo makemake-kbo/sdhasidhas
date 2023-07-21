@@ -18,6 +18,8 @@ contract Justine is BaseHook {
     uint256 private currentPositionId = 0;
     uint256 private currentActiveContracts = 0;
 
+
+
     function getHooksCalls() public pure override returns (Hooks.Calls memory) {
         return Hooks.Calls({
             beforeInitialize: true,
@@ -62,9 +64,12 @@ contract Justine is BaseHook {
         contractAmount = contractAmount / 1e18;
 
         if (hasActiveOption) {
-            modifyLyraPosition(uint256 positionId, uint256 amount);
+            modifyLyraPosition(currentPositionId, contractAmount);
         } else {
-            currentPositionId = openNewLyraPosition(uint256 strikeId, uint256 amount);
+            uint256 _boardId = getBoardId(block.timestamp + 7 days);
+            uint256 _strike = whichStrike(/**/, _boardId);
+
+            currentPositionId = openNewLyraPosition(_strike, contractAmount);
             hasActiveOption = true;
         }
 
