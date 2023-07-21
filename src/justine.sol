@@ -7,16 +7,16 @@ import {BaseHook} from "v4-periphery/BaseHook.sol";
 import {IPoolManager} from "@uniswap/v4-core/contracts/interfaces/IPoolManager.sol";
 import {PoolId} from "@uniswap/v4-core/contracts/libraries/PoolId.sol";
 import {BalanceDelta} from "@uniswap/v4-core/contracts/types/BalanceDelta.sol";
-// import {Currency} from "@uniswap/v4-core/contracts/libraries/CurrencyLibrary.sol";
-import "@uniswap/v4-core/contracts/libraries/CurrencyLibrary.sol";
+import {OptionManager} from "./OptionManager.sol"
+
 
 contract Justine is BaseHook {
     using PoolId for IPoolManager.PoolKey;
 
     bool private isAmount0Eth = false;
     bool private hasActiveOption = false;
-
-    constructor(IPoolManager _poolManager) BaseHook(_poolManager) {}
+    uint256 private currentPositionId = 0;
+    uint256 private currentActiveContracts = 0;
 
     function getHooksCalls() public pure override returns (Hooks.Calls memory) {
         return Hooks.Calls({
@@ -36,10 +36,9 @@ contract Justine is BaseHook {
         override
         returns (bytes4)
     {
-        // TODO: fuck it
-        // if (key.currency0 == address(0)) {
-        //     isAmount0Eth = true;
-        // }
+        if (key.currency0 == address(0)) {
+            isAmount0Eth = true;
+        }
 
         return BaseHook.beforeSwap.selector;
     }
@@ -49,15 +48,25 @@ contract Justine is BaseHook {
         override
         returns (bytes4)
     {
-        // Get how much eth we're depositing
-        uint ethAmount;   
+        // TODO: Add a check if our option expired
+
+        // Get how much eth we're depositing so we can get how much contracts we need to buy
+        uint contractAmount;   
         if (isAmount0Eth) {
-            ethAmount = amount0;
+            contractAmount = amount0;
         } else {
-            ethAmount = amount1;
+            contractAmount = amount1;
         }
 
-        
+        // get how much eth we're depositing, since its going to be whole we need to truncate the decimals
+        contractAmount = contractAmount / 1e18;
+
+        if (hasActiveOption) {
+            modifyLyraPosition(uint256 positionId, uint256 amount);
+        } else {
+            currentPositionId = openNewLyraPosition(uint256 strikeId, uint256 amount);
+            hasActiveOption = true;
+        }
 
         return BaseHook.beforeSwap.selector;
     }
@@ -65,9 +74,10 @@ contract Justine is BaseHook {
     function afterModifyPosition(
         address sender,
         IPoolManager.PoolKey calldata key,
-        IPoolManager.ModifyPositionParams calldata params,
-        BalanceDelta balanceDelta
+        ModifyPositionParams.ModifyParams calldata params
     ) external override returns (bytes4) {
+        // TODO: Add a check if our option expired
+
         return BaseHook.beforeSwap.selector;
     }
 }
