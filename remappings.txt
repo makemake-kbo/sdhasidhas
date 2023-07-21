@@ -1,3 +1,2 @@
 @lyra-protocol/=lib/lyra-protocol/
 openzeppelin-contracts-4.4.1/=lib/openzeppelin-contracts/contracts/
-openzeppelin-contracts-upgradeable-4.5.1/=lib/openzeppelin-contracts-upgradeable/contracts/
