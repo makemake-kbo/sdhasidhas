@@ -48,6 +48,8 @@ contract Justine is BaseHook {
         override
         returns (bytes4)
     {
+        // TODO: Add a check if our option expired
+
         // Get how much eth we're depositing so we can get how much contracts we need to buy
         uint contractAmount;   
         if (isAmount0Eth) {
@@ -74,6 +76,7 @@ contract Justine is BaseHook {
         IPoolManager.PoolKey calldata key,
         ModifyPositionParams.ModifyParams calldata params
     ) external override returns (bytes4) {
+        // TODO: Add a check if our option expired
 
         return BaseHook.beforeSwap.selector;
     }
