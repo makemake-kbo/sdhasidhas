@@ -2,7 +2,7 @@
 pragma solidity ^0.8.15;
 
 // Import Lyra contracts
-import {IOptionMarket} from "@lyra-protocol/contracts/intefaces/IOptionMarket.sol;
+import {IOptionMarket} from "@lyra-protocol/contracts/interfaces/IOptionMarket.sol";
 
 contract OptionChoice {
     IOptionMarket optionMarket;
@@ -43,7 +43,7 @@ contract OptionChoice {
 
     function whichStrike(
         uint _spotPrice,
-        uint _boardId
+        uint boardId
     ) external view returns (uint) {
         // Get the list of strikes for the given board
         uint[] memory strikes = optionMarket.getBoardStrikes(boardId);
