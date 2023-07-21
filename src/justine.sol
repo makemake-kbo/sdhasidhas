@@ -75,7 +75,6 @@ contract Justine is BaseHook {
             modifyLyraPosition(currentPositionId, contractAmount);
         } else {
             uint256 _boardId = getBoardId(block.timestamp + 7 days);
-            uint256 _price = 
             (,uint256 answer,,,) = dataFeed.latestRoundData();
             uint256 _strike = whichStrike(answer, _boardId);
 
