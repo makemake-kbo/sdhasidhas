@@ -44,15 +44,25 @@ contract Justine is BaseHook {
         override
         returns (bytes4)
     {
+        // Get how much eth we're depositing
+        uint ethAmount;   
+        if (isAmount0Eth) {
+            ethAmount = amount0;
+        } else {
+            ethAmount = amount1;
+        }
+
+        
+
         return BaseHook.beforeSwap.selector;
     }
 
-    function afterModifyPosition(address sender, IPoolManager.PoolKey calldata key, ModifyPositionParams.ModifyParams calldata params)
-        external
-        override
-        returns (bytes4)
-    {
+    function afterModifyPosition(
+        address sender,
+        IPoolManager.PoolKey calldata key,
+        ModifyPositionParams.ModifyParams calldata params
+    ) external override returns (bytes4) {
+
         return BaseHook.beforeSwap.selector;
     }
-
 }
