@@ -7,8 +7,12 @@ import {BaseHook} from "v4-periphery/BaseHook.sol";
 import {IPoolManager} from "@uniswap/v4-core/contracts/interfaces/IPoolManager.sol";
 import {PoolId} from "@uniswap/v4-core/contracts/libraries/PoolId.sol";
 import {BalanceDelta} from "@uniswap/v4-core/contracts/types/BalanceDelta.sol";
+<<<<<<< HEAD
 import {OptionManager} from "./OptionManager.sol"
+
+=======
 import {Currency} from "@uniswap/v4-core/contracts/libraries/CurrencyLibrary.sol";
+>>>>>>> e52e64f (yo)
 
 contract Justine is BaseHook {
     using PoolId for IPoolManager.PoolKey;
