@@ -8,12 +8,11 @@ import {IPoolManager} from "@uniswap/v4-core/contracts/interfaces/IPoolManager.s
 import {PoolId} from "@uniswap/v4-core/contracts/libraries/PoolId.sol";
 import {BalanceDelta} from "@uniswap/v4-core/contracts/types/BalanceDelta.sol";
 
-import {LyraAdapter} from "@lyrafinance/protocol/contracts/periphery/LyraAdapter.sol";
-
 contract Justine is BaseHook {
     using PoolId for IPoolManager.PoolKey;
 
     bool private isAmount0Eth = false;
+    bool private hasActiveOption = false;
 
     function getHooksCalls() public pure override returns (Hooks.Calls memory) {
         return Hooks.Calls({
