@@ -15,7 +15,7 @@ contract OptionChoice is OptionManager {
         return _liquidityChange;
     }
 
-    function getBoardId(uint256 _expiryDate) external view returns (uint256) {
+    function getBoardId(uint256 _expiryDate) public view returns (uint256) {
         // Get the list of live boards
         uint256[] memory liveBoards = optionMarket.getLiveBoards();
 
