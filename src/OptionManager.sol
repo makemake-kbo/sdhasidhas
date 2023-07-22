@@ -1,6 +1,7 @@
 pragma solidity ^0.8.0;
 
-import {LyraAdapter} from "@lyra-protocol/contracts/periphery/LyraAdapter.sol";
+import {LyraAdapter, DecimalMath} from "@lyra-protocol/contracts/periphery/LyraAdapter.sol";
+import "@lyra-protocol/contracts/interfaces/IOptionMarketPricer.sol";
 
 contract OptionManager is LyraAdapter {
     uint256[] public activePositionIds;
@@ -56,5 +57,10 @@ contract OptionManager is LyraAdapter {
         activePositionIds.push(result.positionId);
 
         return result.positionId;
+    }
+
+    function isOptionExpired(uint256 strikeId) public view returns (bool) {
+        // logic taken from LyraAdapter.sol l:270
+        return _isOutsideDeltaCutoff(strikeId) || _isWithinTradingCutoff(strikeId);
     }
 }

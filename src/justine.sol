@@ -9,6 +9,8 @@ import {BalanceDelta} from "@uniswap/v4-core/contracts/types/BalanceDelta.sol";
 import {Currency} from "@uniswap/v4-core/contracts/libraries/CurrencyLibrary.sol";
 import {OptionManager} from "src/OptionManager.sol";
 
+error InexistentPosition();
+
 contract Justine is BaseHook {
     using PoolId for IPoolManager.PoolKey;
 
@@ -53,7 +55,7 @@ contract Justine is BaseHook {
         override
         returns (bytes4)
     {
-        // TODO: Add a check if our option expired
+        _checkActive();
 
         // Get how much eth we're depositing so we can get how much contracts we need to buy
         uint256 contractAmount;
@@ -87,8 +89,20 @@ contract Justine is BaseHook {
         IPoolManager.ModifyPositionParams calldata params,
         BalanceDelta delta
     ) external override returns (bytes4) {
-        // TODO: Add a check if our option expired
+        _checkActive();
 
         return BaseHook.beforeSwap.selector;
+    }
+
+    function _checkActive() internal {
+        if (currentPositionId == 0) {
+            revert InexistentPosition();
+        }
+        if (hasActiveOption) {
+            // check if still active but should be inactive
+            if (optionManager.isOptionExpired(currentPositionId)) {
+                hasActiveOption = false;
+            }
+        }
     }
 }
