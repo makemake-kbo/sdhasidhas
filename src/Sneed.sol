@@ -15,6 +15,8 @@ import "./OptionChoice.sol";
 import "./IERC20.sol";
 
 error InexistentPosition();
+error TooShortExpiry();
+error TooLongExpiry();
 
 contract Sneed is BaseHook, OptionChoice {
     using PoolId for IPoolManager.PoolKey;
@@ -29,6 +31,8 @@ contract Sneed is BaseHook, OptionChoice {
 
     address private kahjitAddress;
     address private chainlinkAddress;
+
+    uint256 public expiry = 30 days;
 
     constructor(IPoolManager _poolManager, address _kahjitAddress, bool _gonnaBeEth, address _chainlinkAddress) BaseHook(_poolManager) {
         kahjitAddress = _kahjitAddress;
@@ -54,7 +58,7 @@ contract Sneed is BaseHook, OptionChoice {
         override
         returns (bytes4)
     {
-        // TODO: fix this shit !
+        // TODO: We are having some issues with custom defined types relative to imports
         // if (key.currency0 == Currency.wrap(address(0))) {
         //     isAmount0Eth = true;
         // }
@@ -102,6 +106,7 @@ contract Sneed is BaseHook, OptionChoice {
         IPoolManager.ModifyPositionParams calldata params,
         BalanceDelta delta
     ) external returns (bytes4) {
+        // storing the balance to calculate how much has been deposited at the end
         ethBalanceBefore = int256(IERC20(Currency.unwrap(key.currency0)).balanceOf(address(this)));
 
         return BaseHook.beforeSwap.selector;
@@ -115,7 +120,14 @@ contract Sneed is BaseHook, OptionChoice {
     ) external override returns (bytes4) {
         _checkActive();
 
-        int256 ethBalanceDelta = int256(IERC20(Currency.unwrap(key.currency0)).balanceOf(address(this))) - ethBalanceBefore;
+        Currency eth;
+        if (isAmount0Eth) {
+            eth = key.currency0;
+        } else {
+            eth = key.currency1;
+        }
+
+        int256 ethBalanceDelta = int256(IERC20(Currency.unwrap(eth)).balanceOf(address(this))) - ethBalanceBefore;
 
         // Implying we have 18 decimals
         ethBalanceDelta = ethBalanceDelta / 1e18;
@@ -123,11 +135,10 @@ contract Sneed is BaseHook, OptionChoice {
 
         // if delta is positive, buy options
         if (ethBalanceDelta > 0) {
-
             IKahjit(kahjitAddress).buyOptions(
                 uint256(ethBalanceDelta),
                 uint64(whichStrike(uint256(answer))),
-                uint64((block.timestamp + 30 days)),
+                uint64((block.timestamp + expiry)),
                 10,
                 true
             );
@@ -136,7 +147,7 @@ contract Sneed is BaseHook, OptionChoice {
             IKahjit(kahjitAddress).sellOptions(
                 uint256(ethBalanceDelta),
                 uint64(whichStrike(uint256(answer))),
-                uint64((block.timestamp + 30 days)),
+                uint64((block.timestamp + expiry)),
                 10,
                 true
             );
@@ -153,5 +164,11 @@ contract Sneed is BaseHook, OptionChoice {
         if (IKahjit(kahjitAddress).isExpired()) {
             hasActiveOption = false;
         }
+    }
+
+    function setExpiry(uint256 _expiry) external onlyOwner {
+        if (_expiry < 7 days) revert TooShortExpiry();
+        if (_expiry > 30 days) revert TooLongExpiry();
+        expiry = _expiry;
     }
 }
