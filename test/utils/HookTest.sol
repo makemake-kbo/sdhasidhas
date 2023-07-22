@@ -91,18 +91,13 @@ contract HookTest is Test {
     //     return newAddr;
     // }
 
-    function getPrecomputedHookAddress(
-        bytes memory creationCode,
-        address owner,
-        IPoolManager pm,
-        bytes32 salt
-    ) external view returns (address) {
-        bytes32 bytecodeHash = keccak256(abi.encodePacked(
-            creationCode, abi.encode(owner, pm)
-        ));
-        bytes32 hash = keccak256(
-            abi.encodePacked(bytes1(0xff), address(this), salt, bytecodeHash)
-        );
+    function getPrecomputedHookAddress(bytes memory creationCode, address owner, IPoolManager pm, bytes32 salt)
+        external
+        view
+        returns (address)
+    {
+        bytes32 bytecodeHash = keccak256(abi.encodePacked(creationCode, abi.encode(owner, pm)));
+        bytes32 hash = keccak256(abi.encodePacked(bytes1(0xff), address(this), salt, bytecodeHash));
         return address(uint160(uint256(hash)));
     }
 }
