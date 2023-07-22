@@ -1,13 +1,8 @@
-pragma solidity 0.8.16;
+pragma solidity ^0.8.0;
 
 import {LyraAdapter} from "@lyra-protocol/contracts/periphery/LyraAdapter.sol";
-import {OptionMarket} from "@lyra-protocol/contracts/OptionMarket.sol";
-import {IOptionMarket} from "@lyra-protocol/contracts/interfaces/IOptionMarket.sol";
-import {IOptionToken} from "@lyra-protocol/contracts/interfaces/IOptionToken.sol";
 
-contract TraderExample is LyraAdapter {
-    constructor() LyraAdapter() {}
-
+contract OptionManager is LyraAdapter {
     uint256[] public activePositionIds;
 
     function initAdapter(address _lyraRegistry, address _optionMarket, address _curveSwap, address _feeCounter)

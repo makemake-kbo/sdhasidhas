@@ -3,15 +3,14 @@ pragma solidity ^0.8.15;
 
 // Import Lyra contracts
 import {IOptionMarket} from "@lyra-protocol/contracts/interfaces/IOptionMarket.sol";
+import {OptionManager} from "./OptionManager.sol";
 
-contract OptionChoice {
-    IOptionMarket optionMarket;
-
+contract OptionChoice is OptionManager {
     constructor(address _optionMarket) {
         optionMarket = IOptionMarket(_optionMarket);
     }
 
-    function howManyOptions(uint256 _liquidityChange) external view returns (uint256) {
+    function howManyOptions(uint256 _liquidityChange) public view returns (uint256) {
         // The number of options to buy is equal to the change in liquidity
         return _liquidityChange;
     }
@@ -36,7 +35,7 @@ contract OptionChoice {
         return boardId;
     }
 
-    function whichStrike(uint256 _spotPrice, uint256 boardId) external view returns (uint256) {
+    function whichStrike(uint256 _spotPrice, uint256 boardId) public view returns (uint256) {
         // Get the list of strikes for the given board
         uint256[] memory strikes = optionMarket.getBoardStrikes(boardId);
 
