@@ -12,7 +12,7 @@ contract OptionManager is LyraAdapter {
         setLyraAddresses(_lyraRegistry, _optionMarket, _curveSwap, _feeCounter);
     }
 
-    function openNewLyraPosition(uint256 strikeId, uint256 amount) external returns (uint256) {
+    function openNewLyraPosition(uint256 strikeId, uint256 amount) public returns (uint256) {
         TradeInputParameters memory tradeParams = TradeInputParameters({
             strikeId: strikeId,
             positionId: 0, // if 0, new position is created
@@ -29,7 +29,7 @@ contract OptionManager is LyraAdapter {
         return result.positionId;
     }
 
-    function modifyLyraPosition(uint256 positionId, uint256 amount) external {
+    function modifyLyraPosition(uint256 positionId, uint256 amount) public {
         OptionPosition memory position = _getPositions(positionId); // must first convert number into a static array
 
         TradeInputParameters memory tradeParams = TradeInputParameters({
