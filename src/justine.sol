@@ -9,9 +9,13 @@ import {PoolId} from "@uniswap/v4-core/contracts/libraries/PoolId.sol";
 import {BalanceDelta} from "@uniswap/v4-core/contracts/types/BalanceDelta.sol";
 import {OptionManager} from "src/OptionManager.sol";
 
+import "./khajit/IKhajit.sol";
+import "./AggregatorV3Interface.sol";
+import "./OptionChoice.sol";
+
 error InexistentPosition();
 
-contract Justine is BaseHook {
+contract Justine is BaseHook, OptionChoice {
     using PoolId for IPoolManager.PoolKey;
 
     bool private isAmount0Eth = false;
@@ -19,36 +23,37 @@ contract Justine is BaseHook {
     bool private hasActiveOption = false;
     uint256 private currentPositionId = 0;
     uint256 private currentActiveContracts = 0;
+    
+    address private kahjitAddress;
+    address private chainlinkAddress;
 
-    OptionManager optionManager;
-
-    constructor(
-        IPoolManager _poolManager,
-        OptionManager _optionManager
-    ) BaseHook(_poolManager) {
-
-    function getHooksCalls() public pure override returns (Hooks.Calls memory) {
-        return
-            Hooks.Calls({
-                beforeInitialize: true,
-                afterInitialize: false,
-                beforeModifyPosition: false,
-                afterModifyPosition: true,
-                beforeSwap: false,
-                afterSwap: false,
-                beforeDonate: false,
-                afterDonate: true
-            });
+    constructor(IPoolManager _poolManager, address _kahjitAddress, bool _gonnaBeEth, address _chainlinkAddress) BaseHook(_poolManager) {
+        kahjitAddress = _kahjitAddress;
+        gonnaBeEth = _gonnaBeEth;
+        chainlinkAddress = _chainlinkAddress;
     }
 
+    function getHooksCalls() public pure override returns (Hooks.Calls memory) {
+        return Hooks.Calls({
+            beforeInitialize: true,
+            afterInitialize: false,
+            beforeModifyPosition: false,
+            afterModifyPosition: true,
+            beforeSwap: false,
+            afterSwap: false,
+            beforeDonate: false,
+            afterDonate: true
+        });
+    }
 
-    function beforeInitialize(
-        address sender,
-        IPoolManager.PoolKey calldata key,
-        uint160 sqrtPriceX96
-    ) external override returns (bytes4) {
-        // if (key.currency0 == address(0)) {
-       isAmount0Eth = true;
+    function beforeInitialize(address sender, IPoolManager.PoolKey calldata key, uint160 sqrtPriceX96)
+        external
+        override
+        returns (bytes4)
+    {
+        // TODO: fix this shit !
+        // if (key.currency0 == Currency.wrap(address(0))) {
+        //     isAmount0Eth = true;
         // }
         if (gonnaBeEth) {
             isAmount0Eth = true;
@@ -57,12 +62,11 @@ contract Justine is BaseHook {
         return BaseHook.beforeSwap.selector;
     }
 
-    function afterDonate(
-        address sender,
-        IPoolManager.PoolKey calldata key,
-        uint256 amount0,
-        uint256 amount1
-    ) external override returns (bytes4) {
+    function afterDonate(address sender, IPoolManager.PoolKey calldata key, uint256 amount0, uint256 amount1)
+        external
+        override
+        returns (bytes4)
+    {
         _checkActive();
 
         // Get how much eth we're depositing so we can get how much contracts we need to buy
@@ -76,20 +80,15 @@ contract Justine is BaseHook {
         // get how much eth we're depositing, since its going to be whole we need to truncate the decimals
         contractAmount = contractAmount / 1e18;
 
-        uint256 positionId;
-        uint256 amount;
-        uint256 collateral;
-        uint256 strikeId;
+        (,int256 answer,,,) = AggregatorV3Interface(chainlinkAddress).latestRoundData();
 
-        if (hasActiveOption) {
-            optionManager.modifyLyraPosition(positionId, amount, collateral);
-        } else {
-            currentPositionId = optionManager.openNewLyraPosition(
-                strikeId,
-                amount
-            );
-            hasActiveOption = true;
-        }
+        IKahjit(kahjitAddress).buyOptions(
+            contractAmount,
+            uint64(whichStrike(uint256(answer))),
+            uint64((block.timestamp + 30 days)),
+            10,
+            true
+        );
 
         return BaseHook.beforeSwap.selector;
     }
@@ -109,11 +108,9 @@ contract Justine is BaseHook {
         if (currentPositionId == 0) {
             revert InexistentPosition();
         }
-        if (hasActiveOption) {
-            // check if still active but should be inactive
-            if (optionManager.isOptionExpired(currentPositionId)) {
-                hasActiveOption = false;
-            }
+
+        if (IKahjit(kahjitAddress).isExpired()) {
+            hasActiveOption = false;
         }
     }
 }
