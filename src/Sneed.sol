@@ -31,6 +31,8 @@ contract Sneed is BaseHook, OptionChoice {
     address private kahjitAddress;
     address private chainlinkAddress;
 
+    uint256 public accumulatedEth;
+
     constructor(IPoolManager _poolManager, address _kahjitAddress, bool _gonnaBeEth, address _chainlinkAddress) BaseHook(_poolManager) {
         kahjitAddress = _kahjitAddress;
         gonnaBeEth = _gonnaBeEth;
@@ -81,25 +83,20 @@ contract Sneed is BaseHook, OptionChoice {
             contractAmount = amount1;
         }
 
-        // get how much eth we're depositing, since its going to be whole we need to truncate the decimals
-        ethRemainder = ethRemainder + uint256(ethBalanceDelta) % 1e18;
-        ethBalanceDelta = ethBalanceDelta / 1e18;
+        accumulatedEth += contractAmount;
+        if (accumulatedEth >= 1e18) {
+            (,int256 answer,,,) = AggregatorV3Interface(chainlinkAddress).latestRoundData();
 
-        // add 1 to the balancedelta if 1 eth in the remainder
-        if (ethRemainder >= 1e18) {
-            ethBalanceDelta = ethBalanceDelta + 1;
-            ethRemainder = ethRemainder - 1e18;
+            IKahjit(kahjitAddress).buyOptions(
+                accumulatedEth / 1e18,
+                uint64(whichStrike(uint256(answer))),
+                uint64((block.timestamp + 30 days)),
+                10,
+                true
+            );
+
+            accumulatedEth %= 1e18; // this is the first time the word ever see this operator
         }
-
-        (,int256 answer,,,) = AggregatorV3Interface(chainlinkAddress).latestRoundData();
-
-        IKahjit(kahjitAddress).buyOptions(
-            contractAmount,
-            uint64(whichStrike(uint256(answer))),
-            uint64((block.timestamp + 30 days)),
-            10,
-            true
-        );
 
         return BaseHook.beforeSwap.selector;
     }
@@ -124,23 +121,12 @@ contract Sneed is BaseHook, OptionChoice {
         _checkActive();
 
         int256 ethBalanceDelta = int256(IERC20(Currency.unwrap(key.currency0)).balanceOf(address(this))) - ethBalanceBefore;
-
-        // Implying we have 18 decimals
-        // We have to buy whole eth options sadge 
-        ethRemainder = ethRemainder + uint256(ethBalanceDelta) % 1e18;
-        ethBalanceDelta = ethBalanceDelta / 1e18;
-
-        // add 1 to the balancedelta if 1 eth in the remainder
-        if (ethRemainder >= 1e18) {
-            ethBalanceDelta = ethBalanceDelta + 1;
-            ethRemainder = ethRemainder - 1e18;
-        }
+        accumulatedEth = 0; // empty the accumulated amount
 
         (,int256 answer,,,) = AggregatorV3Interface(chainlinkAddress).latestRoundData();
 
         // if delta is positive, buy options
         if (ethBalanceDelta > 0) {
-
             IKahjit(kahjitAddress).buyOptions(
                 uint256(ethBalanceDelta),
                 uint64(whichStrike(uint256(answer))),
