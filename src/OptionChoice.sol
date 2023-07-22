@@ -10,7 +10,9 @@ contract OptionChoice is OptionManager {
         optionMarket = IOptionMarket(_optionMarket);
     }
 
-    function howManyOptions(uint256 _liquidityChange) public view returns (uint256) {
+    function howManyOptions(
+        uint256 _liquidityChange
+    ) public view returns (uint256) {
         // The number of options to buy is equal to the change in liquidity
         return _liquidityChange;
     }
@@ -27,7 +29,10 @@ contract OptionChoice is OptionManager {
         // Careful with for loops in solidity. If the array is too large you can tun out of gas in the middle of transaction and get stuck.
         for (uint256 i = 1; i < liveBoards.length; i++) {
             uint256 expiry = optionMarket.getOptionBoard(liveBoards[i]).expiry;
-            if (expiry >= _expiryDate && expiry < optionMarket.getOptionBoard(boardId).expiry) {
+            if (
+                expiry >= _expiryDate &&
+                expiry < optionMarket.getOptionBoard(boardId).expiry
+            ) {
                 boardId = liveBoards[i];
             }
         }
@@ -35,7 +40,10 @@ contract OptionChoice is OptionManager {
         return boardId;
     }
 
-    function whichStrike(uint256 _spotPrice, uint256 boardId) public view returns (uint256) {
+    function whichStrike(
+        uint256 _spotPrice,
+        uint256 boardId
+    ) public view returns (uint256) {
         // Get the list of strikes for the given board
         uint256[] memory strikes = optionMarket.getBoardStrikes(boardId);
 
@@ -49,8 +57,13 @@ contract OptionChoice is OptionManager {
         uint256 strikeToBuy = strikes[0];
         // Careful with for loops in solidity. If the array is too large you can tun out of gas in the middle of transaction and get stuck.
         for (uint256 i = 1; i < strikes.length; i++) {
-            uint256 strikePrice = optionMarket.getStrike(strikes[i]).strikePrice;
-            if (strikePrice >= strike && strikePrice < optionMarket.getStrike(strikeToBuy).strikePrice) {
+            uint256 strikePrice = optionMarket
+                .getStrike(strikes[i])
+                .strikePrice;
+            if (
+                strikePrice >= strike &&
+                strikePrice < optionMarket.getStrike(strikeToBuy).strikePrice
+            ) {
                 strikeToBuy = strikes[i];
             }
         }
