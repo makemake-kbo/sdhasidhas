@@ -10,7 +10,7 @@ contract OptionChoice is OptionManager {
         optionMarket = IOptionMarket(_optionMarket);
     }
 
-    function howManyOptions(uint256 _liquidityChange) external view returns (uint256) {
+    function howManyOptions(uint256 _liquidityChange) public view returns (uint256) {
         // The number of options to buy is equal to the change in liquidity
         return _liquidityChange;
     }
@@ -35,7 +35,7 @@ contract OptionChoice is OptionManager {
         return boardId;
     }
 
-    function whichStrike(uint256 _spotPrice, uint256 boardId) external view returns (uint256) {
+    function whichStrike(uint256 _spotPrice, uint256 boardId) public view returns (uint256) {
         // Get the list of strikes for the given board
         uint256[] memory strikes = optionMarket.getBoardStrikes(boardId);
 
