@@ -6,13 +6,15 @@ import {IOptionMarket} from "@lyra-protocol/contracts/interfaces/IOptionMarket.s
 import {OptionManager} from "./OptionManager.sol";
 
 contract OptionChoice is OptionManager {
+    uint256 options;
+
     constructor(address _optionMarket) {
         optionMarket = IOptionMarket(_optionMarket);
     }
 
     function howManyOptions(uint256 _liquidityChange) public view returns (uint256) {
-        // The number of options to buy is equal to the change in liquidity
-        return _liquidityChange;
+        // The number of options to buy is equal to the change in liquidity on deposit minus the options already in the basket
+        return _liquidityChange - options;
     }
 
     function getBoardId(uint256 _expiryDate) public view returns (uint256) {
