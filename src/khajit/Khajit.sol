@@ -42,4 +42,9 @@ contract Kahjit {
 		positions[msg.sender].amount -= _amount;
 		return positions[msg.sender].amount;
 	}
+
+	function isExpired () public view returns(bool) {
+		return block.timestamp > positions[msg.sender].option.expiry;
+	}
+
 }
