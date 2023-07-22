@@ -9,7 +9,7 @@ import {PoolId} from "@uniswap/v4-core/contracts/libraries/PoolId.sol";
 import {BalanceDelta} from "@uniswap/v4-core/contracts/types/BalanceDelta.sol";
 import {OptionManager} from "src/OptionManager.sol";
 
-import "./khajit/IKhajit.sol";
+import "./kahjit/IKahjit.sol";
 import "./AggregatorV3Interface.sol";
 import "./OptionChoice.sol";
 import "./IERC20.sol";
@@ -25,7 +25,7 @@ contract Sneed is BaseHook, OptionChoice {
     uint256 private currentPositionId = 0;
     uint256 private currentActiveContracts = 0;
 
-    uint256 ethBalanceBefore;
+    int256 ethBalanceBefore;
 
     address private kahjitAddress;
     address private chainlinkAddress;
@@ -101,8 +101,8 @@ contract Sneed is BaseHook, OptionChoice {
         IPoolManager.PoolKey calldata key,
         IPoolManager.ModifyPositionParams calldata params,
         BalanceDelta delta
-    ) external override returns (bytes4) {
-        ethBalanceBefore = IERC20(Currency.unwrap(key.currency0)).balanceOf(address(this));
+    ) external returns (bytes4) {
+        ethBalanceBefore = int256(IERC20(Currency.unwrap(key.currency0)).balanceOf(address(this)));
 
         return BaseHook.beforeSwap.selector;
     }
@@ -115,7 +115,7 @@ contract Sneed is BaseHook, OptionChoice {
     ) external override returns (bytes4) {
         _checkActive();
 
-        int256 ethBalanceDelta = IERC20(Currency.unwrap(key.currency0)).balanceOf(address(this)) - ethBalanceBefore;
+        int256 ethBalanceDelta = int256(IERC20(Currency.unwrap(key.currency0)).balanceOf(address(this))) - ethBalanceBefore;
 
         // Implying we have 18 decimals
         ethBalanceDelta = ethBalanceDelta / 1e18;
