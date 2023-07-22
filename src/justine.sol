@@ -19,35 +19,36 @@ contract Justine is BaseHook {
     bool private hasActiveOption = false;
     uint256 private currentPositionId = 0;
     uint256 private currentActiveContracts = 0;
-    
+
     OptionManager optionManager;
 
-    constructor(IPoolManager _poolManager, OptionManager _optionManager, bool _gonnaBeEth) BaseHook(_poolManager) {
-        optionManager = _optionManager;
-        gonnaBeEth = _gonnaBeEth;
-    }
+    constructor(
+        IPoolManager _poolManager,
+        OptionManager _optionManager
+    ) BaseHook(_poolManager) {
 
     function getHooksCalls() public pure override returns (Hooks.Calls memory) {
-        return Hooks.Calls({
-            beforeInitialize: true,
-            afterInitialize: false,
-            beforeModifyPosition: false,
-            afterModifyPosition: true,
-            beforeSwap: false,
-            afterSwap: false,
-            beforeDonate: false,
-            afterDonate: true
-        });
+        return
+            Hooks.Calls({
+                beforeInitialize: true,
+                afterInitialize: false,
+                beforeModifyPosition: false,
+                afterModifyPosition: true,
+                beforeSwap: false,
+                afterSwap: false,
+                beforeDonate: false,
+                afterDonate: true
+            });
     }
 
-    function beforeInitialize(address sender, IPoolManager.PoolKey calldata key, uint160 sqrtPriceX96)
-        external
-        override
-        returns (bytes4)
-    {
-        // TODO: fix this shit !
-        // if (key.currency0 == Currency.wrap(address(0))) {
-        //     isAmount0Eth = true;
+
+    function beforeInitialize(
+        address sender,
+        IPoolManager.PoolKey calldata key,
+        uint160 sqrtPriceX96
+    ) external override returns (bytes4) {
+        // if (key.currency0 == address(0)) {
+       isAmount0Eth = true;
         // }
         if (gonnaBeEth) {
             isAmount0Eth = true;
@@ -56,11 +57,12 @@ contract Justine is BaseHook {
         return BaseHook.beforeSwap.selector;
     }
 
-    function afterDonate(address sender, IPoolManager.PoolKey calldata key, uint256 amount0, uint256 amount1)
-        external
-        override
-        returns (bytes4)
-    {
+    function afterDonate(
+        address sender,
+        IPoolManager.PoolKey calldata key,
+        uint256 amount0,
+        uint256 amount1
+    ) external override returns (bytes4) {
         _checkActive();
 
         // Get how much eth we're depositing so we can get how much contracts we need to buy
@@ -82,7 +84,10 @@ contract Justine is BaseHook {
         if (hasActiveOption) {
             optionManager.modifyLyraPosition(positionId, amount, collateral);
         } else {
-            currentPositionId = optionManager.openNewLyraPosition(strikeId, amount);
+            currentPositionId = optionManager.openNewLyraPosition(
+                strikeId,
+                amount
+            );
             hasActiveOption = true;
         }
 

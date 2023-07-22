@@ -6,15 +6,24 @@ import "@lyra-protocol/contracts/interfaces/IOptionMarketPricer.sol";
 contract OptionManager is LyraAdapter {
     uint256[] public activePositionIds;
 
-    function initAdapter(address _lyraRegistry, address _optionMarket, address _curveSwap, address _feeCounter)
-        external
-    {
+    function initAdapter(
+        address _lyraRegistry,
+        address _optionMarket,
+        address _curveSwap,
+        address _feeCounter
+    ) external {
         // set addresses for LyraAdapter
         setLyraAddresses(_lyraRegistry, _optionMarket, _curveSwap, _feeCounter);
     }
 
-    function modifyLyraPosition(uint256 positionId, uint256 amount, uint256 collateral) external onlyOwner {
-        LyraAdapter.OptionPosition[] memory positions = _getPositions(_singletonArray(positionId)); // must first convert number into a static array
+    function modifyLyraPosition(
+        uint256 positionId,
+        uint256 amount,
+        uint256 collateral
+    ) external onlyOwner {
+        LyraAdapter.OptionPosition[] memory positions = _getPositions(
+            _singletonArray(positionId)
+        ); // must first convert number into a static array
         // Position position = _getPositions(_singletonArray(positionId)); // must first convert number into a static array
 
         LyraAdapter.OptionPosition memory position = positions[0];
@@ -35,13 +44,18 @@ contract OptionManager is LyraAdapter {
         _closeOrForceClosePosition(tradeParams);
     }
 
-    function _singletonArray(uint256 val) public view returns (uint256[] memory arr) {
+    function _singletonArray(
+        uint256 val
+    ) public view returns (uint256[] memory arr) {
         arr = new uint256[](1);
         arr[0] = val;
         return arr;
     }
 
-    function openNewLyraPosition(uint256 strikeId, uint256 amount) public returns (uint256) {
+    function openNewLyraPosition(
+        uint256 strikeId,
+        uint256 amount
+    ) public returns (uint256) {
         TradeInputParameters memory tradeParams = TradeInputParameters({
             strikeId: strikeId,
             positionId: 0, // if 0, new position is created
@@ -61,6 +75,7 @@ contract OptionManager is LyraAdapter {
 
     function isOptionExpired(uint256 strikeId) public view returns (bool) {
         // logic taken from LyraAdapter.sol l:270
-        return _isOutsideDeltaCutoff(strikeId) || _isWithinTradingCutoff(strikeId);
+        return
+            _isOutsideDeltaCutoff(strikeId) || _isWithinTradingCutoff(strikeId);
     }
 }

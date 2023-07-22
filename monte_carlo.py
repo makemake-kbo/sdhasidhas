@@ -12,9 +12,10 @@ EXPECTED_RETURN = 1.00  # This should be the expected return of ETH
 NUM_ETH = 50  # Amount of ETH in collateral
 NUM_OPTIONS = 50  # Number of options bought
 STRIKE_PRICE = LAST_PRICE * 1.3  # 30%+ of the starting price
-MATURITY = 14  # Maturity of the the option
+MATURITY = 365  # Maturity of the the option
 INTEREST_RATE = 0.04
 SUPPLIED_PRICE = 1957
+SUPPLIED_AMOUNT = 50  # Amount of currency supplied by the liquidity provider
 
 # Create an empty matrix to hold the end price data
 all_simulated_price = np.zeros((NUM_SIMULATIONS, NUM_DAYS))
@@ -25,12 +26,14 @@ all_simulated_provider_payoff = np.zeros((NUM_SIMULATIONS, NUM_DAYS))
 # Create an empty matrix to hold the portfolio value data
 all_simulated_portfolio_value = np.zeros((NUM_SIMULATIONS, NUM_DAYS))
 
+# Create an empty matrix to hold the portfolio value data
+all_simulated_provider_payoff_with_options = np.zeros((NUM_SIMULATIONS, NUM_DAYS))
+
 # Set the plot size
 plt.figure(figsize=(10, 5))
 
 eth_values = []
 portfolio_values = []
-provider_payoffs = []
 
 # Run the Monte Carlo simulation
 for x in range(NUM_SIMULATIONS):
@@ -55,8 +58,8 @@ for x in range(NUM_SIMULATIONS):
     eth_value = NUM_ETH * price_series
     eth_values.append(eth_value)
 
-    # Calculate the liquidity provider payoff each day
-    provider_payoff = liquidity_provider_payoff_v3(
+    # Calculate the liquidity provider payoffs each day
+    provider_payoff = SUPPLIED_AMOUNT * liquidity_provider_payoff_v3(
         SUPPLIED_PRICE, price_series, fee=0.003
     )
     all_simulated_provider_payoff[x] = provider_payoff
@@ -70,6 +73,10 @@ for x in range(NUM_SIMULATIONS):
         VOLATILITY,
         option_type="call",
     )
+
+    # Calculate liquidity providers payoff including options hedge
+    provider_payoff_with_options = provider_payoff + options_value
+    all_simulated_provider_payoff_with_options[x] = provider_payoff_with_options
 
     # Calculate the total value of the portfolio each day
     portfolio_value = eth_value + options_value
@@ -110,6 +117,12 @@ plt.title("Liquidity Provider Payoff Over Time")
 for provider_payoff in all_simulated_provider_payoff:
     plt.plot(provider_payoff)
 plt.ylim([min_provider_payoff, max_provider_payoff])
+
+# Plot the liquidity provider payoff with options each day
+plt.figure(5)
+plt.title("Liquidity Provider Payoff with Hedge Over Time")
+for provider_payoff in all_simulated_provider_payoff_with_options:
+    plt.plot(provider_payoff)
 
 # Show the plot
 plt.show()
