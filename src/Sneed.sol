@@ -28,6 +28,7 @@ contract Sneed is BaseHook, OptionChoice {
     uint256 private currentActiveContracts = 0;
 
     int256 ethBalanceBefore;
+    uint256 ethRemainder;
 
     address private kahjitAddress;
     address private chainlinkAddress;
@@ -85,7 +86,14 @@ contract Sneed is BaseHook, OptionChoice {
         }
 
         // get how much eth we're depositing, since its going to be whole we need to truncate the decimals
-        contractAmount = contractAmount / 1e18;
+        ethRemainder = ethRemainder + uint256(ethBalanceDelta) % 1e18;
+        ethBalanceDelta = ethBalanceDelta / 1e18;
+
+        // add 1 to the balancedelta if 1 eth in the remainder
+        if (ethRemainder >= 1e18) {
+            ethBalanceDelta = ethBalanceDelta + 1;
+            ethRemainder = ethRemainder - 1e18;
+        }
 
         (,int256 answer,,,) = AggregatorV3Interface(chainlinkAddress).latestRoundData();
 
@@ -130,7 +138,16 @@ contract Sneed is BaseHook, OptionChoice {
         int256 ethBalanceDelta = int256(IERC20(Currency.unwrap(eth)).balanceOf(address(this))) - ethBalanceBefore;
 
         // Implying we have 18 decimals
+        // We have to buy whole eth options sadge 
+        ethRemainder = ethRemainder + uint256(ethBalanceDelta) % 1e18;
         ethBalanceDelta = ethBalanceDelta / 1e18;
+
+        // add 1 to the balancedelta if 1 eth in the remainder
+        if (ethRemainder >= 1e18) {
+            ethBalanceDelta = ethBalanceDelta + 1;
+            ethRemainder = ethRemainder - 1e18;
+        }
+
         (,int256 answer,,,) = AggregatorV3Interface(chainlinkAddress).latestRoundData();
 
         // if delta is positive, buy options
