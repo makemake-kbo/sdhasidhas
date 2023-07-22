@@ -2,7 +2,7 @@ from web3 import Web3
 
 # Replace the following values with your own Ethereum node URL and private key
 # Never share your private key publicly or commit it to a repository
-eth_node_url = "https://proxy.devnet.neonlabs.org/solana"
+eth_node_url = "https://devnet.neonevm.org"
 private_key = "deb22b9a7834b4f526db5fc8dd820e182775d457013285f98c494bd28e9f362c"
 
 # Replace these with the sender and receiver addresses
