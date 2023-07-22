@@ -11,6 +11,7 @@ import {PoolDonateTest} from "@uniswap/v4-core/contracts/test/PoolDonateTest.sol
 
 import {TestERC20} from "@uniswap/v4-core/contracts/test/TestERC20.sol";
 import {TickMath} from "@uniswap/v4-core/contracts/libraries/TickMath.sol";
+import {Hooks} from "@uniswap/v4-core/contracts/libraries/Hooks.sol";
 
 /// @notice Contract to initialize some test helpers
 /// @dev Minimal initialization. Inheriting contract should set up pools and provision liquidity
@@ -39,7 +40,9 @@ contract HookTest is Test {
             token0 = _tokenB;
             token1 = _tokenA;
         }
-        manager = new PoolManager(500000);
+        PoolManager _manager = new PoolManager(500000);
+        manager = _manager;
+        // manager = PoolManager(payable(writeFromAddrToStarts(address(_manager), 0xff)));
 
         // Helpers for interacting with the pool
         modifyPositionRouter = new PoolModifyPositionTest(IPoolManager(address(manager)));
@@ -78,5 +81,28 @@ contract HookTest is Test {
             PoolSwapTest.TestSettings({withdrawTokens: true, settleUsingTransfer: true});
 
         swapRouter.swap(key, params, testSettings);
+    }
+
+    // function writeFromAddrToStarts(address addr, bytes1 starts) public returns (address) {
+    //     address newAddr = address(bytes20(starts));
+    //     emit log_address(newAddr);
+    //     assert(bytes1(uint8(uint160(newAddr) / (2 ** (8 * (19))))) == starts);
+    //     vm.etch(newAddr, addr.code);
+    //     return newAddr;
+    // }
+
+    function getPrecomputedHookAddress(
+        bytes memory creationCode,
+        address owner,
+        IPoolManager pm,
+        bytes32 salt
+    ) external view returns (address) {
+        bytes32 bytecodeHash = keccak256(abi.encodePacked(
+            creationCode, abi.encode(owner, pm)
+        ));
+        bytes32 hash = keccak256(
+            abi.encodePacked(bytes1(0xff), address(this), salt, bytecodeHash)
+        );
+        return address(uint160(uint256(hash)));
     }
 }
