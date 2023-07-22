@@ -101,7 +101,7 @@ contract Justine is BaseHook {
         return BaseHook.beforeSwap.selector;
     }
 
-    function afterDonate(address sender, IPoolManager.PoolKey calldata key, uint256 amount0, uint256 amount1)
+    function beforeDonate(address sender, IPoolManager.PoolKey calldata key, uint256 amount0, uint256 amount1)
         external
         override
         returns (bytes4)
@@ -133,7 +133,7 @@ contract Justine is BaseHook {
         return BaseHook.beforeSwap.selector;
     }
 
-    function afterModifyPosition(
+    function beforeModifyPosition(
         address sender,
         IPoolManager.PoolKey calldata key,
         IPoolManager.ModifyPositionParams calldata params,
