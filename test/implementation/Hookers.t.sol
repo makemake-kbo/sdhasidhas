@@ -2,25 +2,34 @@
 pragma solidity ^0.8.15;
 
 import "forge-std/Test.sol";
-import {GasSnapshot} from "forge-gas-snapshot/GasSnapshot.sol";
+
+import {IPoolManager} from "@uniswap/v4-core/contracts/interfaces/IPoolManager.sol";
+import {PoolId} from "@uniswap/v4-core/contracts/libraries/PoolId.sol";
+import {CurrencyLibrary, Currency} from "@uniswap/v4-core/contracts/libraries/CurrencyLibrary.sol";
+import {Deployers} from "@uniswap/v4-core/test/foundry-tests/utils/Deployers.sol";
 import {IHooks} from "@uniswap/v4-core/contracts/interfaces/IHooks.sol";
 import {Hooks} from "@uniswap/v4-core/contracts/libraries/Hooks.sol";
 import {TickMath} from "@uniswap/v4-core/contracts/libraries/TickMath.sol";
-import {IPoolManager} from "@uniswap/v4-core/contracts/interfaces/IPoolManager.sol";
-import {PoolId} from "@uniswap/v4-core/contracts/libraries/PoolId.sol";
-import {Deployers} from "@uniswap/v4-core/test/foundry-tests/utils/Deployers.sol";
-import {CurrencyLibrary, Currency} from "@uniswap/v4-core/contracts/libraries/CurrencyLibrary.sol";
-import {HookTest} from "./utils/HookTest.sol";
-import {Counter} from "../src/Counter.sol";
-import {CounterImplementation} from "./implementation/CounterImplementation.sol";
 
-contract CounterTest is HookTest, Deployers, GasSnapshot {
+import {OptionManager} from "src/OptionManager.sol";
+import {Justine} from "src/justine.sol";
+import {HookTest} from "../utils/HookTest.sol";
+import {Counter} from "src/Counter.sol";
+import {CounterImplementation} from "test/implementation/CounterImplementation.sol";
+import {Kahjit} from "src/kahjit/Kahjit.sol";
+
+contract Hookers is HookTest, Deployers {
     using PoolId for IPoolManager.PoolKey;
     using CurrencyLibrary for Currency;
 
     Counter counter = Counter(address(uint160(Hooks.BEFORE_SWAP_FLAG | Hooks.AFTER_SWAP_FLAG)));
+
+    OptionManager optionManager;
+    Justine justine;
     IPoolManager.PoolKey poolKey;
     bytes32 poolId;
+
+    Kahjit kahjit;
 
     function setUp() public {
         // creates the pool manager, test tokens, and other utility routers
@@ -44,21 +53,29 @@ contract CounterTest is HookTest, Deployers, GasSnapshot {
         modifyPositionRouter.modifyPosition(
             poolKey, IPoolManager.ModifyPositionParams(TickMath.minUsableTick(60), TickMath.maxUsableTick(60), 10 ether)
         );
+
+        kahjit = new Kahjit();
     }
 
-    function testCounterHooks() public {
-        assertEq(counter.beforeSwapCount(), 0);
-        assertEq(counter.afterSwapCount(), 0);
-
-        // Perform a test swap //
-        int256 amount = 100;
-        bool zeroForOne = true;
-        swap(poolKey, amount, zeroForOne);
-        // ------------------- //
-
-        assertEq(counter.beforeSwapCount(), 1);
-        assertEq(counter.afterSwapCount(), 1);
+    function testBuyOptions() public {
+        uint256 amount = 1 ether;
+        uint64 strike = 1 ether * 1.3;
+        uint64 expiry = uint64(block.timestamp + 7 days);
+        uint64 price = 1000;
+        uint256 amountBought = kahjit.buyOptions(amount, strike, expiry, price, true);
+        assertEq(amountBought, amount);
     }
 
-    function testCallOption() public {}
+    function testSellOptions() public {
+        uint256 amount = 1 ether;
+        uint64 strike = 1 ether * 1.3;
+        uint64 expiry = uint64(block.timestamp + 7 days);
+        uint64 price = 1000;
+        uint256 noBought = kahjit.sellOptions(amount, strike, expiry, price, true);
+        assertEq(noBought, 0);
+
+        kahjit.buyOptions(amount, strike, expiry, price, true);
+        uint256 amountBought = kahjit.sellOptions(amount, strike, expiry, price, true);
+        assertEq(amountBought, amount);
+    }
 }
