@@ -8,7 +8,7 @@ NUM_SIMULATIONS = 1000
 NUM_DAYS = 365
 LAST_PRICE = 1957  # This should be the current price of ETH
 VOLATILITY = 0.4  # This should be the historical VOLATILITY of ETH
-EXPECTED_RETURN = 2.00  # This should be the expected return of ETH
+EXPECTED_RETURN = 1.00  # This should be the expected return of ETH
 NUM_ETH = 50  # Amount of ETH in collateral
 NUM_OPTIONS = 50  # Number of options bought
 STRIKE_PRICE = LAST_PRICE * 1.3  # 30%+ of the starting price
@@ -46,6 +46,7 @@ for x in range(NUM_SIMULATIONS):
     # Plot each simulation
     plt.figure(1)
     plt.plot(price_series)
+    plt.title("Price Series Simulation")
 
     # Append the end price of each simulation to the matrix
     all_simulated_price[x] = price_series[-1]
@@ -67,7 +68,7 @@ for x in range(NUM_SIMULATIONS):
         MATURITY,
         INTEREST_RATE,
         VOLATILITY,
-        option_type="put",
+        option_type="call",
     )
 
     # Calculate the total value of the portfolio each day
@@ -81,27 +82,34 @@ for x in range(NUM_SIMULATIONS):
 eth_values = np.array(eth_values)
 portfolio_values = np.array(portfolio_values)
 
-# Calculate the minimum and maximum values across both datasets
+# Calculate the minimum and maximum values across price and portfolio value
 min_value = min(np.min(eth_values), np.min(portfolio_values))
 max_value = max(np.max(eth_values), np.max(portfolio_values))
+
+# Calculate the minimum and maximum values for the liquidity provider payoff
+min_provider_payoff = np.min(all_simulated_provider_payoff)
+max_provider_payoff = np.max(all_simulated_provider_payoff)
 
 # Plot the value of the ETH holdings each day
 plt.figure(2)
 for eth_value in eth_values:
     plt.plot(eth_value)
 plt.ylim([min_value, max_value])  # Set the limits of the y-axis
+plt.title("ETH Holdings Value Over Time")
 
 # Plot the total value of the portfolio each day
 plt.figure(3)
 for portfolio_value in portfolio_values:
     plt.plot(portfolio_value)
 plt.ylim([min_value, max_value])  # Set the limits of the y-axis
+plt.title("Total Portfolio Value Over Time")
 
 # Plot the liquidity provider payoff each day
 plt.figure(4)
+plt.title("Liquidity Provider Payoff Over Time")
 for provider_payoff in all_simulated_provider_payoff:
     plt.plot(provider_payoff)
-plt.ylim([min_value, max_value])  # Set the limits of the y-axis
+plt.ylim([min_provider_payoff, max_provider_payoff])
 
 # Show the plot
 plt.show()
