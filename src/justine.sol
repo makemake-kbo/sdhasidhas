@@ -7,6 +7,7 @@ import {IPoolManager} from "@uniswap/v4-core/contracts/interfaces/IPoolManager.s
 import {PoolId} from "@uniswap/v4-core/contracts/libraries/PoolId.sol";
 import {BalanceDelta} from "@uniswap/v4-core/contracts/types/BalanceDelta.sol";
 import {Currency} from "@uniswap/v4-core/contracts/libraries/CurrencyLibrary.sol";
+import {OptionManager} from "src/OptionManager.sol";
 
 contract Justine is BaseHook {
     using PoolId for IPoolManager.PoolKey;
@@ -15,8 +16,12 @@ contract Justine is BaseHook {
     bool private hasActiveOption = false;
     uint256 private currentPositionId = 0;
     uint256 private currentActiveContracts = 0;
+    
+    OptionManager optionManager;
 
-    constructor(IPoolManager _poolManager) BaseHook(_poolManager) {}
+    constructor(IPoolManager _poolManager, OptionManager _optionManager) BaseHook(_poolManager) {
+        optionManager = _optionManager;
+    }
 
     function getHooksCalls() public pure override returns (Hooks.Calls memory) {
         return Hooks.Calls({
@@ -61,12 +66,17 @@ contract Justine is BaseHook {
         // get how much eth we're depositing, since its going to be whole we need to truncate the decimals
         contractAmount = contractAmount / 1e18;
 
-        // if (hasActiveOption) {
-        //     modifyLyraPosition(positionId, amount);
-        // } else {
-        //     currentPositionId = openNewLyraPosition(strikeId, amount);
-        //     hasActiveOption = true;
-        // }
+        uint256 positionId;
+        uint256 amount;
+        uint256 collateral;
+        uint256 strikeId;
+
+        if (hasActiveOption) {
+            optionManager.modifyLyraPosition(positionId, amount, collateral);
+        } else {
+            currentPositionId = optionManager.openNewLyraPosition(strikeId, amount);
+            hasActiveOption = true;
+        }
 
         return BaseHook.beforeSwap.selector;
     }

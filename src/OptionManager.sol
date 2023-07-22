@@ -39,4 +39,22 @@ contract OptionManager is LyraAdapter {
         arr[0] = val;
         return arr;
     }
+
+    function openNewLyraPosition(uint256 strikeId, uint256 amount) public returns (uint256) {
+        TradeInputParameters memory tradeParams = TradeInputParameters({
+            strikeId: strikeId,
+            positionId: 0, // if 0, new position is created
+            iterations: 3, // more iterations use more gas but incur less slippage
+            optionType: LyraAdapter.OptionType.LONG_CALL,
+            amount: amount,
+            setCollateralTo: 0, // 0 if longing
+            minTotalCost: 0,
+            maxTotalCost: type(uint256).max,
+            rewardRecipient: address(0)
+        });
+        TradeResult memory result = _openPosition(tradeParams); // built-in LyraAdapter.sol function
+        activePositionIds.push(result.positionId);
+
+        return result.positionId;
+    }
 }
