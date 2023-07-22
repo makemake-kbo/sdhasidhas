@@ -1,40 +1,39 @@
 pragma solidity ^0.8.0;
 
+import "src/options/IOptions.sol";
+
 error NoOptions();
 error NotExpired();
 
-/**
- * Kahjit has options if you have coin
- */
-contract Kahjit {
-    /// @param amount how much of options have been bought
-    struct KahjitOption {
-        uint256 amount;
-        uint64 strike;
-        uint64 expiry;
-        uint64 price;
-        bool isCall;
-    }
+/// @param amount how much of options have been bought
+struct KahjitOption {
+    uint256 amount;
+    uint64 strike;
+    uint64 expiry;
+    uint64 price;
+    bool isCall;
+}
 
+contract Opt is IOptions {
     // user => positions((total_amount, options))
     mapping(address => KahjitOption[]) public options;
 
+    constructor() {}
+
     /// @return new amount after buy
-    function buyOptions(address to, uint256 _amount, uint64 _strike, uint64 _expiry, uint64 _price, bool _isCall)
-        public
+    function buyOptions(address to, uint256 amount, uint64 strike, uint64 expiry, uint64 price, bool isCall)
+        external
+        virtual
         returns (uint256)
     {
-        KahjitOption memory option = KahjitOption(_amount, _strike, _expiry, _price, _isCall);
+        KahjitOption memory option = KahjitOption(amount, strike, expiry, price, isCall);
         options[to].push(option);
 
         return option.amount;
     }
 
     // @notice I want to sell one of my previously bought options
-    function sellOptions(uint256 index)
-        public
-        returns (uint256)
-    {
+    function sellOptions(uint256 index) external virtual returns (uint256) {
         uint256 max = options[msg.sender].length;
         if (max == 0) revert NoOptions();
 
@@ -45,9 +44,16 @@ contract Kahjit {
 
         return removedOption.amount;
     }
+}
+
+/**
+ * Kahjit has options if you have coin
+ */
+contract Kahjit is Opt {
+    constructor() Opt() {}
 
     /// @notice do stuff on expired option
-    function pokeOption(address who, uint256 index) public {
+    function pokeOption(address who, uint256 index) external {
         if (!isExpired(who, index)) revert NotExpired();
     }
 
