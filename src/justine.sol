@@ -8,8 +8,9 @@ import {Currency} from "@uniswap/v4-core/contracts/libraries/CurrencyLibrary.sol
 import {PoolId} from "@uniswap/v4-core/contracts/libraries/PoolId.sol";
 import {BalanceDelta} from "@uniswap/v4-core/contracts/types/BalanceDelta.sol";
 import {OptionManager} from "src/OptionManager.sol";
+import {AggregatorV3Interface} from "src/AggregatorV3Interface.sol";
 
-import "./khajit/IKhajit.sol";
+import "./kahjit/IKahjit.sol";
 import "./AggregatorV3Interface.sol";
 import "./OptionChoice.sol";
 
@@ -23,11 +24,13 @@ contract Justine is BaseHook, OptionChoice {
     bool private hasActiveOption = false;
     uint256 private currentPositionId = 0;
     uint256 private currentActiveContracts = 0;
-    
+
     address private kahjitAddress;
     address private chainlinkAddress;
 
-    constructor(IPoolManager _poolManager, address _kahjitAddress, bool _gonnaBeEth, address _chainlinkAddress) BaseHook(_poolManager) {
+    constructor(IPoolManager _poolManager, address _kahjitAddress, bool _gonnaBeEth, address _chainlinkAddress)
+        BaseHook(_poolManager)
+    {
         kahjitAddress = _kahjitAddress;
         gonnaBeEth = _gonnaBeEth;
         chainlinkAddress = _chainlinkAddress;
@@ -80,14 +83,10 @@ contract Justine is BaseHook, OptionChoice {
         // get how much eth we're depositing, since its going to be whole we need to truncate the decimals
         contractAmount = contractAmount / 1e18;
 
-        (,int256 answer,,,) = AggregatorV3Interface(chainlinkAddress).latestRoundData();
+        (, int256 answer,,,) = AggregatorV3Interface(chainlinkAddress).latestRoundData();
 
         IKahjit(kahjitAddress).buyOptions(
-            contractAmount,
-            uint64(whichStrike(uint256(answer))),
-            uint64((block.timestamp + 30 days)),
-            10,
-            true
+            contractAmount, uint64(whichStrike(uint256(answer))), uint64((block.timestamp + 30 days)), 10, true
         );
 
         return BaseHook.beforeSwap.selector;

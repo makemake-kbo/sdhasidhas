@@ -6,7 +6,6 @@ import {IOptionMarket} from "@lyra-protocol/contracts/interfaces/IOptionMarket.s
 import {OptionManager} from "./OptionManager.sol";
 
 contract OptionChoice is OptionManager {
-
     function whichStrike(uint256 _spotPrice) public view returns (uint256) {
         // Get the list of strikes for the given board
 
