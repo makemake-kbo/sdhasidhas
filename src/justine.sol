@@ -9,6 +9,8 @@ import {PoolId} from "@uniswap/v4-core/contracts/libraries/PoolId.sol";
 import {BalanceDelta} from "@uniswap/v4-core/contracts/types/BalanceDelta.sol";
 import {OptionManager} from "src/OptionManager.sol";
 
+import "./khajit/IKhajit.sol";
+
 error InexistentPosition();
 
 contract Justine is BaseHook {
@@ -20,10 +22,10 @@ contract Justine is BaseHook {
     uint256 private currentPositionId = 0;
     uint256 private currentActiveContracts = 0;
     
-    OptionManager optionManager;
+    address private kajhitAddress;
 
-    constructor(IPoolManager _poolManager, OptionManager _optionManager, bool _gonnaBeEth) BaseHook(_poolManager) {
-        optionManager = _optionManager;
+    constructor(address _kajhitAddress, bool _gonnaBeEth) BaseHook(_poolManager) {
+        kajhitAddress = _kajhitAddress;
         gonnaBeEth = _gonnaBeEth;
     }
 
@@ -79,12 +81,13 @@ contract Justine is BaseHook {
         uint256 collateral;
         uint256 strikeId;
 
-        if (hasActiveOption) {
-            optionManager.modifyLyraPosition(positionId, amount, collateral);
-        } else {
-            currentPositionId = optionManager.openNewLyraPosition(strikeId, amount);
-            hasActiveOption = true;
-        }
+        buyOptions(
+            contractAmount,
+            whichStrike(),
+            block.timestamp + 1 month,
+            10,
+            true
+        );
 
         return BaseHook.beforeSwap.selector;
     }
