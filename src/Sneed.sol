@@ -82,7 +82,14 @@ contract Sneed is BaseHook, OptionChoice {
         }
 
         // get how much eth we're depositing, since its going to be whole we need to truncate the decimals
-        contractAmount = contractAmount / 1e18;
+        ethRemainder = ethRemainder + uint256(ethBalanceDelta) % 1e18;
+        ethBalanceDelta = ethBalanceDelta / 1e18;
+
+        // add 1 to the balancedelta if 1 eth in the remainder
+        if (ethRemainder >= 1e18) {
+            ethBalanceDelta = ethBalanceDelta + 1;
+            ethRemainder = ethRemainder - 1e18;
+        }
 
         (,int256 answer,,,) = AggregatorV3Interface(chainlinkAddress).latestRoundData();
 
