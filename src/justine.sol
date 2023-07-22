@@ -8,8 +8,58 @@ import {PoolId} from "@uniswap/v4-core/contracts/libraries/PoolId.sol";
 import {BalanceDelta} from "@uniswap/v4-core/contracts/types/BalanceDelta.sol";
 import {Currency} from "@uniswap/v4-core/contracts/libraries/CurrencyLibrary.sol";
 
+import "./OptionManager.sol";
 
-import "@chainlink/interfaces/AggregatorV3Interface.sol";
+// remapings refuse to work so we import it here enjoy 
+interface AggregatorV3Interface {
+
+  function decimals()
+    external
+    view
+    returns (
+      uint8
+    );
+
+  function description()
+    external
+    view
+    returns (
+      string memory
+    );
+
+  function version()
+    external
+    view
+    returns (
+      uint256
+    );
+
+  function getRoundData(
+    uint80 _roundId
+  )
+    external
+    view
+    returns (
+      uint80 roundId,
+      int256 answer,
+      uint256 startedAt,
+      uint256 updatedAt,
+      uint80 answeredInRound
+    );
+
+  function latestRoundData()
+    external
+    view
+    returns (
+      uint80 roundId,
+      int256 answer,
+      uint256 startedAt,
+      uint256 updatedAt,
+      uint80 answeredInRound
+    );
+
+}
+
 
 contract Justine is BaseHook {
     using PoolId for IPoolManager.PoolKey;

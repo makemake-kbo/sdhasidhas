@@ -1,4 +1,4 @@
-pragma solidity ^0.8.16;
+pragma solidity ^0.8.0;
 
 import {LyraAdapter} from "@lyra-protocol/contracts/periphery/LyraAdapter.sol";
 
@@ -19,7 +19,7 @@ contract OptionManager is LyraAdapter {
             strikeId: strikeId,
             positionId: 0, // if 0, new position is created
             iterations: 3, // more iterations use more gas but incur less slippage
-            optionType: LONG_CALL,
+            optionType: 0,
             amount: amount,
             setCollateralTo: 0, // 0 if longing
             minTotalCost: 0,
