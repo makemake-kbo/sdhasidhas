@@ -3,8 +3,6 @@ pragma solidity ^0.8.0;
 import {LyraAdapter} from "@lyra-protocol/contracts/periphery/LyraAdapter.sol";
 
 contract OptionManager is LyraAdapter {
-    constructor() LyraAdapter();
-
     uint256[] public activePositionIds;
 
     function initAdapter(address _lyraRegistry, address _optionMarket, address _curveSwap, address _feeCounter)
