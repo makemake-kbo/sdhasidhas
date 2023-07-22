@@ -16,3 +16,6 @@
 [submodule "lib/chainlink"]
 	path = lib/chainlink
 	url = https://github.com/smartcontractkit/chainlink
+[submodule "lib/lyra-protocol"]
+	path = lib/lyra-protocol
+	url = https://github.com/makemake-kbo/lyra-protocol
