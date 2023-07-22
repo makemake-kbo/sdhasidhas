@@ -59,4 +59,8 @@ contract CounterTest is HookTest, Deployers, GasSnapshot {
         assertEq(counter.beforeSwapCount(), 1);
         assertEq(counter.afterSwapCount(), 1);
     }
+
+    function testCallOption() public {
+
+    }
 }

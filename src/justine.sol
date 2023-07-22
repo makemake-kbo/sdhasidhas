@@ -4,9 +4,9 @@ pragma solidity ^0.8.15;
 import {Hooks} from "@uniswap/v4-core/contracts/libraries/Hooks.sol";
 import {BaseHook} from "v4-periphery/BaseHook.sol";
 import {IPoolManager} from "@uniswap/v4-core/contracts/interfaces/IPoolManager.sol";
+import {Currency} from "@uniswap/v4-core/contracts/libraries/CurrencyLibrary.sol";
 import {PoolId} from "@uniswap/v4-core/contracts/libraries/PoolId.sol";
 import {BalanceDelta} from "@uniswap/v4-core/contracts/types/BalanceDelta.sol";
-import {Currency} from "@uniswap/v4-core/contracts/libraries/CurrencyLibrary.sol";
 import {OptionManager} from "src/OptionManager.sol";
 
 error InexistentPosition();
@@ -15,14 +15,16 @@ contract Justine is BaseHook {
     using PoolId for IPoolManager.PoolKey;
 
     bool private isAmount0Eth = false;
+    bool private gonnaBeEth = false;
     bool private hasActiveOption = false;
     uint256 private currentPositionId = 0;
     uint256 private currentActiveContracts = 0;
     
     OptionManager optionManager;
 
-    constructor(IPoolManager _poolManager, OptionManager _optionManager) BaseHook(_poolManager) {
+    constructor(IPoolManager _poolManager, OptionManager _optionManager, bool _gonnaBeEth) BaseHook(_poolManager) {
         optionManager = _optionManager;
+        gonnaBeEth = _gonnaBeEth;
     }
 
     function getHooksCalls() public pure override returns (Hooks.Calls memory) {
@@ -43,9 +45,13 @@ contract Justine is BaseHook {
         override
         returns (bytes4)
     {
-        // if (key.currency0 == address(0)) {
+        // TODO: fix this shit !
+        // if (key.currency0 == Currency.wrap(address(0))) {
         //     isAmount0Eth = true;
         // }
+        if (gonnaBeEth) {
+            isAmount0Eth = true;
+        }
 
         return BaseHook.beforeSwap.selector;
     }
