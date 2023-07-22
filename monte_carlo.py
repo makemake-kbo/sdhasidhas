@@ -30,9 +30,6 @@ all_simulated_provider_payoff_with_options = np.zeros((NUM_SIMULATIONS, NUM_DAYS
 # Create an empty matrix to hold the options value data
 all_simulated_options_value = np.zeros((NUM_SIMULATIONS, NUM_DAYS))
 
-# Set the plot size
-plt.figure(figsize=(10, 5))
-
 # Run the Monte Carlo simulation
 for x in range(NUM_SIMULATIONS):
     # Calculate daily returns using GBM formula
@@ -43,11 +40,6 @@ for x in range(NUM_SIMULATIONS):
 
     # Calculate price series
     price_series = LAST_PRICE * np.cumprod(daily_returns)
-
-    # Plot each simulation
-    plt.figure(1)
-    plt.plot(price_series)
-    plt.title("Price Series Simulation")
 
     # Append the end price of each simulation to the matrix
     all_simulated_price[x] = price_series[-1]
@@ -76,37 +68,23 @@ for x in range(NUM_SIMULATIONS):
     all_simulated_options_value[x] = options_value
 
     # Calculate liquidity providers payoff including options hedge
-    if x == 0:  # For the first simulation, there's no previous day
-        provider_payoff_with_options = provider_payoff
-    else:
-        provider_payoff_with_options = provider_payoff + (
-            all_simulated_options_value[x] - all_simulated_options_value[x - 1]
-        )
+    provider_payoff_with_options = SUPPLIED_AMOUNT * (
+        1 + provider_payoff + options_value
+    )
     all_simulated_provider_payoff_with_options[x] = provider_payoff_with_options
 
-print("provider payoff", all_simulated_provider_payoff)
-print("provider payoff with options", all_simulated_provider_payoff_with_options)
-print("options value", options_value[x])
-
 # Plot the liquidity provider payoff each day
-plt.figure(2)
-plt.title("Liquidity Provider Payoff Over Time")
+plt.figure(1)
+plt.title("Liquidity Provider Payoff Over Time due to Impermanent Loss")
 for provider_payoff in all_simulated_provider_payoff:
     plt.plot(provider_payoff)
-# plt.ylim([min_provider_payoff, max_provider_payoff])
 
 # Plot the liquidity provider payoff with options each day
-plt.figure(3)
-plt.title("Liquidity Provider Payoff with Hedge Over Time")
+plt.figure(2)
+plt.title("Liquidity Provider Payoff Over Time with Hedge")
 for provider_payoff in all_simulated_provider_payoff_with_options:
     plt.plot(provider_payoff)
 
-plt.figure(4)
-plt.title("Options Value Over Time")
-for options_value in all_simulated_options_value:
-    plt.plot(options_value)
-
-# Show the plot
 plt.show()
 
 # Calculate the expected payoff to the liquidity provider without options
