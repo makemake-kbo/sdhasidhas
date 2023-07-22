@@ -8,15 +8,15 @@ import {Currency} from "@uniswap/v4-core/contracts/libraries/CurrencyLibrary.sol
 import {PoolId} from "@uniswap/v4-core/contracts/libraries/PoolId.sol";
 import {BalanceDelta} from "@uniswap/v4-core/contracts/types/BalanceDelta.sol";
 import {OptionManager} from "src/OptionManager.sol";
-import {AggregatorV3Interface} from "src/AggregatorV3Interface.sol";
 
 import "./kahjit/IKahjit.sol";
 import "./AggregatorV3Interface.sol";
 import "./OptionChoice.sol";
+import "./IERC20.sol";
 
 error InexistentPosition();
 
-contract Justine is BaseHook, OptionChoice {
+contract Sneed is BaseHook, OptionChoice {
     using PoolId for IPoolManager.PoolKey;
 
     bool private isAmount0Eth = false;
@@ -25,12 +25,12 @@ contract Justine is BaseHook, OptionChoice {
     uint256 private currentPositionId = 0;
     uint256 private currentActiveContracts = 0;
 
+    int256 ethBalanceBefore;
+
     address private kahjitAddress;
     address private chainlinkAddress;
 
-    constructor(IPoolManager _poolManager, address _kahjitAddress, bool _gonnaBeEth, address _chainlinkAddress)
-        BaseHook(_poolManager)
-    {
+    constructor(IPoolManager _poolManager, address _kahjitAddress, bool _gonnaBeEth, address _chainlinkAddress) BaseHook(_poolManager) {
         kahjitAddress = _kahjitAddress;
         gonnaBeEth = _gonnaBeEth;
         chainlinkAddress = _chainlinkAddress;
@@ -40,7 +40,7 @@ contract Justine is BaseHook, OptionChoice {
         return Hooks.Calls({
             beforeInitialize: true,
             afterInitialize: false,
-            beforeModifyPosition: false,
+            beforeModifyPosition: true,
             afterModifyPosition: true,
             beforeSwap: false,
             afterSwap: false,
@@ -83,11 +83,26 @@ contract Justine is BaseHook, OptionChoice {
         // get how much eth we're depositing, since its going to be whole we need to truncate the decimals
         contractAmount = contractAmount / 1e18;
 
-        (, int256 answer,,,) = AggregatorV3Interface(chainlinkAddress).latestRoundData();
+        (,int256 answer,,,) = AggregatorV3Interface(chainlinkAddress).latestRoundData();
 
         IKahjit(kahjitAddress).buyOptions(
-            contractAmount, uint64(whichStrike(uint256(answer))), uint64((block.timestamp + 30 days)), 10, true
+            contractAmount,
+            uint64(whichStrike(uint256(answer))),
+            uint64((block.timestamp + 30 days)),
+            10,
+            true
         );
+
+        return BaseHook.beforeSwap.selector;
+    }
+
+    function beforeModifyPosition(
+        address sender,
+        IPoolManager.PoolKey calldata key,
+        IPoolManager.ModifyPositionParams calldata params,
+        BalanceDelta delta
+    ) external returns (bytes4) {
+        ethBalanceBefore = int256(IERC20(Currency.unwrap(key.currency0)).balanceOf(address(this)));
 
         return BaseHook.beforeSwap.selector;
     }
@@ -99,6 +114,33 @@ contract Justine is BaseHook, OptionChoice {
         BalanceDelta delta
     ) external override returns (bytes4) {
         _checkActive();
+
+        int256 ethBalanceDelta = int256(IERC20(Currency.unwrap(key.currency0)).balanceOf(address(this))) - ethBalanceBefore;
+
+        // Implying we have 18 decimals
+        ethBalanceDelta = ethBalanceDelta / 1e18;
+        (,int256 answer,,,) = AggregatorV3Interface(chainlinkAddress).latestRoundData();
+
+        // if delta is positive, buy options
+        if (ethBalanceDelta > 0) {
+
+            IKahjit(kahjitAddress).buyOptions(
+                uint256(ethBalanceDelta),
+                uint64(whichStrike(uint256(answer))),
+                uint64((block.timestamp + 30 days)),
+                10,
+                true
+            );
+        } else {
+            // if delta is negative, sell options
+            IKahjit(kahjitAddress).sellOptions(
+                uint256(ethBalanceDelta),
+                uint64(whichStrike(uint256(answer))),
+                uint64((block.timestamp + 30 days)),
+                10,
+                true
+            );
+        }
 
         return BaseHook.beforeSwap.selector;
     }

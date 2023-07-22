@@ -30,3 +30,6 @@ def black_scholes(S, K, T, r, sigma, option_type="call"):
         raise ValueError("option_type must be either 'call' or 'put'.")
 
     return price
+
+
+print(black_scholes(1957, 1957, 1, 0.04, 0.4))

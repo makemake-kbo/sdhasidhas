@@ -12,7 +12,7 @@ import {Hooks} from "@uniswap/v4-core/contracts/libraries/Hooks.sol";
 import {TickMath} from "@uniswap/v4-core/contracts/libraries/TickMath.sol";
 
 import {OptionManager} from "src/OptionManager.sol";
-import {Justine} from "src/justine.sol";
+import {Sneed} from "src/Sneed.sol";
 import {HookTest} from "../utils/HookTest.sol";
 import {Counter} from "src/Counter.sol";
 import {CounterImplementation} from "test/implementation/CounterImplementation.sol";
@@ -25,7 +25,7 @@ contract Hookers is HookTest, Deployers {
     Counter counter = Counter(address(uint160(Hooks.BEFORE_SWAP_FLAG | Hooks.AFTER_SWAP_FLAG)));
 
     OptionManager optionManager;
-    Justine justine;
+    Sneed sneed;
     IPoolManager.PoolKey poolKey;
     bytes32 poolId;
 
