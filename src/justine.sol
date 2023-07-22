@@ -8,7 +8,8 @@ import {PoolId} from "@uniswap/v4-core/contracts/libraries/PoolId.sol";
 import {BalanceDelta} from "@uniswap/v4-core/contracts/types/BalanceDelta.sol";
 import {Currency} from "@uniswap/v4-core/contracts/libraries/CurrencyLibrary.sol";
 
-import "./OptionManager.sol";
+import {OptionManager} from "./OptionManager.sol";
+import {OptionChoice} from "./OptionChoice.sol";
 
 // remapings refuse to work so we import it here enjoy 
 interface AggregatorV3Interface {
@@ -60,8 +61,7 @@ interface AggregatorV3Interface {
 
 }
 
-
-contract Justine is BaseHook {
+contract Justine is BaseHook, OptionManager {
     using PoolId for IPoolManager.PoolKey;
 
     bool private isAmount0Eth = false;
@@ -80,12 +80,12 @@ contract Justine is BaseHook {
         return Hooks.Calls({
             beforeInitialize: true,
             afterInitialize: false,
-            beforeModifyPosition: false,
-            afterModifyPosition: true,
+            beforeModifyPosition: true,
+            afterModifyPosition: false,
             beforeSwap: false,
             afterSwap: false,
-            beforeDonate: false,
-            afterDonate: true
+            beforeDonate: true,
+            afterDonate: false
         });
     }
 
@@ -123,7 +123,7 @@ contract Justine is BaseHook {
             modifyLyraPosition(currentPositionId, contractAmount);
         } else {
             uint256 _boardId = getBoardId(block.timestamp + 7 days);
-            (,uint256 answer,,,) = dataFeed.latestRoundData();
+            (,int256 answer,,,) = dataFeed.latestRoundData();
             uint256 _strike = whichStrike(answer, _boardId);
 
             currentPositionId = openNewLyraPosition(_strike, contractAmount);

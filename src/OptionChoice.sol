@@ -3,10 +3,9 @@ pragma solidity ^0.8.15;
 
 // Import Lyra contracts
 import {IOptionMarket} from "@lyra-protocol/contracts/interfaces/IOptionMarket.sol";
+import {OptionManager} from "./OptionManager.sol";
 
-contract OptionChoice {
-    IOptionMarket optionMarket;
-
+contract OptionChoice is OptionManager {
     constructor(address _optionMarket) {
         optionMarket = IOptionMarket(_optionMarket);
     }

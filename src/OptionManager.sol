@@ -13,7 +13,7 @@ contract OptionManager is LyraAdapter {
     }
 
     function openNewLyraPosition(uint256 strikeId, uint256 amount) external returns (uint256) {
-        TradeInputParameters tradeParams = TradeInputParameters({
+        TradeInputParameters memory tradeParams = TradeInputParameters({
             strikeId: strikeId,
             positionId: 0, // if 0, new position is created
             iterations: 3, // more iterations use more gas but incur less slippage
@@ -23,16 +23,16 @@ contract OptionManager is LyraAdapter {
             minTotalCost: 0,
             maxTotalCost: type(uint256).max
         });
-        TradeResult result = _openPosition(tradeParams); // built-in LyraAdapter.sol function
+        TradeResult memory result = _openPosition(tradeParams); // built-in LyraAdapter.sol function
         activePositionIds.push(result.positionId);
 
         return result.positionId;
     }
 
     function modifyLyraPosition(uint256 positionId, uint256 amount) external {
-        Position position = _getPositions(_singletonArray(positionId)); // must first convert number into a static array
+        OptionPosition memory position = _getPositions(positionId); // must first convert number into a static array
 
-        TradeInputParameters tradeParams = TradeInputParameters({
+        TradeInputParameters memory tradeParams = TradeInputParameters({
             strikeId: position.strikeId,
             positionId: position.positionId,
             iterations: 3,
