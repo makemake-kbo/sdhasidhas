@@ -2,6 +2,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from black_scholes import black_scholes
 from provider_payoff import liquidity_provider_payoff_v3
+from save_csv import save_to_csv
 
 # Set the parameters
 NUM_SIMULATIONS = 10
@@ -62,11 +63,11 @@ for x in range(NUM_SIMULATIONS):
 
     # Calculate the value of the put options each day
     for day in range(NUM_DAYS):
-        remaining_maturity = MATURITY - (day / 365)
+        # remaining_maturity = MATURITY - (day / 365)
         options_value[day] = NUM_OPTIONS * black_scholes(
             price_series[day],
             STRIKE_PRICE,
-            remaining_maturity,
+            MATURITY,
             INTEREST_RATE,
             VOLATILITY,
             option_type="call",
@@ -83,8 +84,8 @@ for x in range(NUM_SIMULATIONS):
         )
     all_simulated_provider_payoff_with_options[x] = provider_payoff_with_options
 
-print("provider payoff", provider_payoff)
-print("provider payoff with options", provider_payoff_with_options)
+print("provider payoff", all_simulated_provider_payoff)
+print("provider payoff with options", all_simulated_provider_payoff_with_options)
 print("options value", options_value[x])
 
 # Plot the liquidity provider payoff each day
@@ -124,4 +125,11 @@ print(
 print(
     "Expected payoff to the liquidity provider with options: ",
     expected_payoff_with_options,
+)
+
+save_to_csv(
+    all_simulated_provider_payoff,
+    all_simulated_provider_payoff_with_options,
+    all_simulated_options_value,
+    "all_data.csv",
 )
