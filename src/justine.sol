@@ -8,8 +8,8 @@ import {PoolId} from "@uniswap/v4-core/contracts/libraries/PoolId.sol";
 import {BalanceDelta} from "@uniswap/v4-core/contracts/types/BalanceDelta.sol";
 import {Currency} from "@uniswap/v4-core/contracts/libraries/CurrencyLibrary.sol";
 
-import {OptionManager} from "./OptionManager.sol";
-import {OptionChoice} from "./OptionChoice.sol";
+import "./OptionManager.sol";
+import "./OptionChoice.sol";
 
 // remapings refuse to work so we import it here enjoy 
 interface AggregatorV3Interface {
