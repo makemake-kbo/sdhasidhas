@@ -12,7 +12,7 @@ EXPECTED_RETURN = 0.00  # This should be the expected return of ETH
 NUM_ETH = 1  # Amount of ETH in collateral
 NUM_OPTIONS = 1  # Number of options bought
 STRIKE_PRICE = LAST_PRICE  # 30%+ of the starting price
-MATURITY = 365  # Maturity of the the option
+MATURITY = 365 / 365  # Maturity of the the option
 INTEREST_RATE = 0.04
 SUPPLIED_PRICE = 1957
 SUPPLIED_AMOUNT = 1  # Amount of currency supplied by the liquidity provider
@@ -60,13 +60,17 @@ for x in range(NUM_SIMULATIONS):
     # Initialize the options_value array
     options_value = np.zeros(NUM_DAYS)
 
-    # Calculate the value of the options each day
+    # Calculate the value of the put options each day
     for day in range(NUM_DAYS):
-        # If the option is in the money, its value is the difference between the strike price and the price of the underlying asset
-        if price_series[day] > STRIKE_PRICE:  # For a call option
-            options_value[day] = NUM_OPTIONS * (price_series[day] - STRIKE_PRICE)
-        else:  # If the option is out of the money, its value is zero
-            options_value[day] = 0
+        remaining_maturity = MATURITY - (day / 365)
+        options_value[day] = NUM_OPTIONS * black_scholes(
+            price_series[day],
+            STRIKE_PRICE,
+            remaining_maturity,
+            INTEREST_RATE,
+            VOLATILITY,
+            option_type="call",
+        )
 
     all_simulated_options_value[x] = options_value
 
