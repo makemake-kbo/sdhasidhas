@@ -13,15 +13,12 @@ def send_transaction(web3, nonce):
     if not web3.is_connected():
         print("Error: Could not connect to Ethereum node.")
         return
-    
-
-    print(web3.eth.gas_price)
     # Create the transaction
     transaction = {
         "to": receiver_address,
         "value": web3.to_wei(0.1, "ether"),  # 0.1 Ether, you can adjust the value as needed
         "gas": 60000,  # Standard gas limit for a simple transfer
-        "gasPrice": int(web3.eth.gas_price * 2),
+        "gasPrice": web3.eth.gas_price*5,
         "nonce": nonce,
     }
 
@@ -29,9 +26,11 @@ def send_transaction(web3, nonce):
     signed_transaction = web3.eth.account.sign_transaction(transaction, private_key)
 
     # Send the transaction
-    tx_hash = web3.eth.send_raw_transaction(signed_transaction.rawTransaction)
-
-    print(f"Transaction sent. Transaction Hash: {web3.to_hex(tx_hash)}")
+    try:
+        tx_hash = web3.eth.send_raw_transaction(signed_transaction.rawTransaction)
+        print(f"Transaction sent. Transaction Hash: {web3.to_hex(tx_hash)}")
+    except Exception as e:
+        print(f"Error: {e}")
 
 
 if __name__ == "__main__":
