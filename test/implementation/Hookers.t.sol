@@ -62,7 +62,7 @@ contract Hookers is HookTest, Deployers {
         uint64 strike = 1 ether * 1.3;
         uint64 expiry = uint64(block.timestamp + 7 days);
         uint64 price = 1000;
-        uint256 amountBought = kahjit.buyOptions(amount, strike, expiry, price, true);
+        uint256 amountBought = kahjit.buyOptions(address(this), amount, strike, expiry, price, true);
         assertEq(amountBought, amount);
     }
 
@@ -71,11 +71,8 @@ contract Hookers is HookTest, Deployers {
         uint64 strike = 1 ether * 1.3;
         uint64 expiry = uint64(block.timestamp + 7 days);
         uint64 price = 1000;
-        uint256 noBought = kahjit.sellOptions(amount, strike, expiry, price, true);
-        assertEq(noBought, 0);
-
-        kahjit.buyOptions(amount, strike, expiry, price, true);
-        uint256 amountBought = kahjit.sellOptions(amount, strike, expiry, price, true);
+        kahjit.buyOptions(address(this), amount, strike, expiry, price, true);
+        uint256 amountBought = kahjit.sellOptions(0);
         assertEq(amountBought, amount);
     }
 }

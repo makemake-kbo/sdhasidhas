@@ -34,7 +34,9 @@ contract Sneed is BaseHook, OptionChoice {
 
     uint256 public expiry = 30 days;
 
-    constructor(IPoolManager _poolManager, address _kahjitAddress, bool _gonnaBeEth, address _chainlinkAddress) BaseHook(_poolManager) {
+    constructor(IPoolManager _poolManager, address _kahjitAddress, bool _gonnaBeEth, address _chainlinkAddress)
+        BaseHook(_poolManager)
+    {
         kahjitAddress = _kahjitAddress;
         gonnaBeEth = _gonnaBeEth;
         chainlinkAddress = _chainlinkAddress;
@@ -87,14 +89,10 @@ contract Sneed is BaseHook, OptionChoice {
         // get how much eth we're depositing, since its going to be whole we need to truncate the decimals
         contractAmount = contractAmount / 1e18;
 
-        (,int256 answer,,,) = AggregatorV3Interface(chainlinkAddress).latestRoundData();
+        (, int256 answer,,,) = AggregatorV3Interface(chainlinkAddress).latestRoundData();
 
         IKahjit(kahjitAddress).buyOptions(
-            contractAmount,
-            uint64(whichStrike(uint256(answer))),
-            uint64((block.timestamp + 30 days)),
-            10,
-            true
+            contractAmount, uint64(whichStrike(uint256(answer))), uint64((block.timestamp + 30 days)), 10, true
         );
 
         return BaseHook.beforeSwap.selector;
@@ -131,7 +129,7 @@ contract Sneed is BaseHook, OptionChoice {
 
         // Implying we have 18 decimals
         ethBalanceDelta = ethBalanceDelta / 1e18;
-        (,int256 answer,,,) = AggregatorV3Interface(chainlinkAddress).latestRoundData();
+        (, int256 answer,,,) = AggregatorV3Interface(chainlinkAddress).latestRoundData();
 
         // if delta is positive, buy options
         if (ethBalanceDelta > 0) {

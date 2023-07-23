@@ -1,54 +1,63 @@
 pragma solidity ^0.8.0;
 
+import "src/options/IOptions.sol";
+
+error NoOptions();
+error NotExpired();
+
+/// @param amount how much of options have been bought
+struct KahjitOption {
+    uint256 amount;
+    uint64 strike;
+    uint64 expiry;
+    uint64 price;
+    bool isCall;
+}
+
+contract Opt is IOptions {
+    // user => positions((total_amount, options))
+    mapping(address => KahjitOption[]) public options;
+
+    constructor() {}
+
+    /// @return new amount after buy
+    function buyOptions(address to, uint256 amount, uint64 strike, uint64 expiry, uint64 price, bool isCall)
+        external
+        virtual
+        returns (uint256)
+    {
+        KahjitOption memory option = KahjitOption(amount, strike, expiry, price, isCall);
+        options[to].push(option);
+
+        return option.amount;
+    }
+
+    // @notice I want to sell one of my previously bought options
+    function sellOptions(uint256 index) external virtual returns (uint256) {
+        uint256 max = options[msg.sender].length;
+        if (max == 0) revert NoOptions();
+
+        // remove the option at index by replace and pop
+        options[msg.sender][max - 1] = options[msg.sender][index];
+        KahjitOption memory removedOption = options[msg.sender][max - 1];
+        options[msg.sender].pop();
+
+        return removedOption.amount;
+    }
+}
+
 /**
  * Kahjit has options if you have coin
  */
-contract Kahjit {
-    struct KahjitOption {
-        uint64 strike;
-        uint64 expiry;
-        uint64 price;
-        bool isCall;
+contract Kahjit is Opt {
+    constructor() Opt() {}
+
+    /// @notice do stuff on expired option
+    function pokeOption(address who, uint256 index) external {
+        if (!isExpired(who, index)) revert NotExpired();
     }
 
-    struct Position {
-        uint256 amount;
-        KahjitOption option;
-    }
-
-    mapping(address => Position) public positions;
-
-    function buyOptions(uint256 _amount, uint64 _strike, uint64 _expiry, uint64 _price, bool _isCall)
-        public
-        returns (uint256)
-    {
-        if (positions[msg.sender].amount > 0) {
-            positions[msg.sender].amount += _amount;
-
-            return positions[msg.sender].amount;
-        }
-
-        KahjitOption memory option = KahjitOption(_strike, _expiry, _price, _isCall);
-        positions[msg.sender] = Position(_amount, option);
-
-        return positions[msg.sender].amount;
-    }
-
-    function sellOptions(uint256 _amount, uint64 _strike, uint64 _expiry, uint64 _price, bool _isCall)
-        public
-        returns (uint256)
-    {
-        uint256 posAmt = positions[msg.sender].amount;
-        if (_amount >= posAmt) {
-            delete positions[msg.sender];
-            return posAmt;
-        }
-
-        positions[msg.sender].amount -= _amount;
-        return positions[msg.sender].amount;
-    }
-
-    function isExpired() public view returns (bool) {
-        return block.timestamp > positions[msg.sender].option.expiry;
+    function isExpired(address who, uint256 index) public view returns (bool) {
+        return block.timestamp > options[who][index].expiry;
     }
 }
